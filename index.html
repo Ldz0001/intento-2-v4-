@@ -146,17 +146,48 @@ Perf notes:
     :focus-visible{outline:2px solid var(--accent-3); box-shadow:var(--ring); border-radius:6px}
     a.skip{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
     a.skip:focus{left:8px;top:8px;width:auto;height:auto;background:#fff;color:#000;padding:8px 10px;border-radius:8px;z-index:1000}
-    header{position:sticky;top:0;z-index:40;backdrop-filter:blur(10px);background:var(--glass);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 16px 12px}
-    header h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.4px}
-    nav[role="navigation"]{display:flex;gap:8px;flex-wrap:wrap}
-    .tab-btn{background:#fff;color:var(--text);border:1px solid var(--border);padding:8px 12px;font-size:13px;border-radius:12px;cursor:pointer;box-shadow:0 1px 0 #00000010,inset 0 0 0 1px #ffffff66;transition:transform .06s,box-shadow .12s,border-color .12s,background .12s}
+    body{margin:0;background:var(--overlay);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,"Noto Sans";line-height:1.45;letter-spacing:.2px;padding-bottom:env(safe-area-inset-bottom);min-height:100vh}
+    .app-shell{min-height:100vh;display:flex;flex-direction:column}
+    .app-header{position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);background:var(--glass);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:24px;min-height:64px;padding:0 clamp(20px,3vw,36px);padding-top:calc(env(safe-area-inset-top,0px))}
+    .header-left{display:flex;align-items:center;gap:16px;min-width:0}
+    .sidebar-toggle{appearance:none;border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:12px;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 1px 0 #00000010,inset 0 0 0 1px #ffffff66;transition:box-shadow .15s ease,border-color .15s ease,background .15s ease}
+    .sidebar-toggle:hover{border-color:var(--accent-3);box-shadow:0 6px 20px rgba(124,58,237,.18)}
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .brand-mark{width:36px;height:36px;border-radius:12px;background:linear-gradient(180deg,var(--accent-3),var(--accent));display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;letter-spacing:.4px}
+    .brand-text{display:flex;flex-direction:column;min-width:0}
+    .brand-title{margin:0;font-size:22px;font-weight:800;letter-spacing:.4px;line-height:1.1}
+    .brand-subtitle{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+    .header-search{flex:1;min-width:220px;display:flex}
+    .app-header .search-wrap{position:relative;width:100%}
+    .header-actions{display:flex;align-items:center;gap:16px}
+    .user-menu{display:inline-flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:999px;padding:4px 14px;height:40px;background:var(--panel);color:var(--text);cursor:pointer;box-shadow:0 1px 0 #00000010,inset 0 0 0 1px #ffffff66;font-size:14px;font-weight:600}
+    .user-menu:hover{border-color:var(--accent-3);box-shadow:0 6px 20px rgba(124,58,237,.18)}
+    .user-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+    .app-body{flex:1;display:grid;grid-template-columns:280px minmax(0,1fr);min-height:0}
+    .app-sidebar{background:var(--panel);border-right:1px solid var(--border);padding:28px 20px;display:flex;flex-direction:column;gap:28px;position:sticky;top:calc(64px + env(safe-area-inset-top,0px));align-self:start;height:calc(100vh - 64px - env(safe-area-inset-top,0px));overflow:auto;width:100%}
+    .app-sidebar::-webkit-scrollbar{width:8px}
+    .app-sidebar::-webkit-scrollbar-thumb{background:rgba(124,58,237,.25);border-radius:999px}
+    .sidebar-section{display:flex;flex-direction:column;gap:14px}
+    .sidebar-title{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+    .scope{display:flex;flex-direction:column;gap:6px}
+    .scope .small{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+    nav[role="navigation"]{display:flex;flex-direction:column;gap:8px}
+    .tab-btn{background:var(--card);color:var(--text);border:1px solid var(--border);padding:10px 16px;font-size:14px;border-radius:12px;cursor:pointer;box-shadow:0 1px 0 #00000010,inset 0 0 0 1px #ffffff66;transition:transform .08s ease,box-shadow .15s ease,border-color .15s ease,background .15s ease;display:flex;align-items:center;gap:12px;font-weight:600;text-align:left;width:100%}
+    .tab-btn .nav-label{flex:1;white-space:nowrap}
+    .tab-btn .icon{width:18px;height:18px}
     [data-theme="dark"] .tab-btn{background:#141c2b;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05),0 1px 0 rgba(0,0,0,.35)}
-    .tab-btn:hover{border-color:var(--accent-3);box-shadow:0 4px 14px rgba(124,58,237,.2);transform:translateY(-1px)}
+    .tab-btn:hover{border-color:var(--accent-3);box-shadow:0 6px 20px rgba(124,58,237,.24);transform:translateY(-1px)}
     .tab-btn[aria-current="page"]{background:var(--active-tab-bg);border-color:var(--accent)}
     [data-theme="dark"] .tab-btn[aria-current="page"]{background:var(--active-tab-bg-dark)}
-    .theme-toggle{display:inline-flex;gap:10px;align-items:center;border:1px solid var(--border);border-radius:999px;padding:6px 12px;background:#fff;cursor:pointer}
+    .sidebar-footer{margin-top:auto;display:flex;flex-direction:column;gap:12px}
+    .accent-control{display:flex;align-items:center;gap:12px}
+    #accentBtn{width:44px;height:44px;padding:0;border-radius:12px}
+    .accent-labels{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--muted)}
+    .theme-toggle{display:inline-flex;gap:10px;align-items:center;justify-content:space-between;border:1px solid var(--border);border-radius:12px;padding:8px 14px;background:var(--panel);cursor:pointer;height:44px;font-size:13px;font-weight:600;width:100%}
     [data-theme="dark"] .theme-toggle{background:#141c2b}
-    .theme-toggle .label{font-size:12px;color:var(--muted)}
+    .theme-toggle .label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+    .sidebar-overlay{position:fixed;inset:calc(64px + env(safe-area-inset-top,0px)) 0 0 0;background:rgba(17,18,38,.4);backdrop-filter:blur(2px);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s ease}
+    body.sidebar-open .sidebar-overlay{opacity:1;pointer-events:auto}
 /* Accent color picker button */
 .color-chip{
   width:28px; height:28px; border-radius:999px;
@@ -194,8 +225,8 @@ Perf notes:
 }
 
     .icon{width:18px;height:18px;display:inline-block}
-    main{padding:18px;max-width:1320px;margin:0 auto calc(56px + env(safe-area-inset-bottom))}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+    .app-main{padding:32px clamp(24px,3vw,48px) 48px;max-width:1440px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:32px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px 24px;box-shadow:var(--shadow)}
     .analysis-tab{display:flex;flex-direction:column;gap:16px}
     .analysis-grid{display:grid;gap:16px}
     @media (min-width:900px){.analysis-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -351,7 +382,7 @@ Perf notes:
     .filters-toolbar button{margin-left:auto}
     .filters-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
     @media(max-width:720px){.filters-grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}}
-    .grid{display:grid;gap:12px}
+    .grid{display:grid;gap:20px}
     .grid>*{min-width:0}
     .grid>.card,
     .grid>form{width:100%}
@@ -381,7 +412,7 @@ Perf notes:
     .two>.card{display:flex;flex-direction:column;gap:12px}
     .two>.card .table-wrap{flex:1}
     @media(max-width:1100px){.two{grid-template-columns:1fr}}
-    input,select,textarea,button{background:#fff;color:var(--text);border:1px solid var(--border);border-radius:12px;padding:9px 12px;font-size:14px;box-shadow:inset 0 0 0 1px #ffffffcc}
+    input,select,textarea,button{background:#fff;color:var(--text);border:1px solid var(--border);border-radius:12px;padding:9px 12px;font-size:14px;box-shadow:inset 0 0 0 1px #ffffffcc;min-height:40px}
     input::placeholder,textarea::placeholder{color:var(--placeholder);opacity:.75}
     [data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea,[data-theme="dark"] button{background:#111827;border-color:#3b4a6a;box-shadow:inset 0 0 0 1px rgba(148,163,184,.15);color:var(--text)}
     input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent-3);box-shadow:0 0 0 3px var(--focus),inset 0 0 0 1px #ffffff80}
@@ -432,14 +463,13 @@ Perf notes:
       .table-wrap{border:0;overflow:visible}
       th{position:static}
     }
-header { gap: 14px; }
-header .search-wrap{position:relative; max-width:360px; flex:1 1 300px}
-#globalSearch{width:100%}
-#globalSearchList{position:absolute; top:100%; left:0; right:0; z-index:50; background:var(--popover); border:1px solid var(--popover-border); border-radius:12px; margin-top:6px; box-shadow:var(--shadow); max-height:260px; overflow:auto}
-.search-item{padding:10px 12px; cursor:pointer; border-bottom:1px solid var(--border); font-size:13px}
-.search-item:last-child{border-bottom:0}
-.search-item:hover{background:var(--row-hover)}
-[data-theme="dark"] .search-item:hover,[data-theme="dark"] .search-item.active{background:var(--row-hover-dark)}
+    .header-search .search-wrap{position:relative;max-width:520px;flex:1}
+    #globalSearch{width:100%}
+    #globalSearchList{position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--popover);border:1px solid var(--popover-border);border-radius:12px;margin-top:6px;box-shadow:var(--shadow);max-height:260px;overflow:auto}
+    .search-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px}
+    .search-item:last-child{border-bottom:0}
+    .search-item:hover{background:var(--row-hover)}
+    [data-theme="dark"] .search-item:hover,[data-theme="dark"] .search-item.active{background:var(--row-hover-dark)}
 /* Palette fallbacks (will be overwritten by JS when you pick a color) */
 :root{
   --th-bg:#f5f0ff;
@@ -466,54 +496,46 @@ header .search-wrap{position:relative; max-width:360px; flex:1 1 300px}
   --kpi-value:#f6f5ff;
 }
 
-    @media(max-width:980px){
-      header{flex-wrap:wrap;align-items:flex-start;row-gap:12px;justify-content:flex-start}
-      header h1{flex:1 1 100%;margin-bottom:4px}
-      header .search-wrap{order:3;flex:1 1 100%;max-width:none}
-      header .scope{order:2;flex:1 1 100%;justify-content:space-between}
-      header .scope select{width:100%}
-      #accentBtn{order:4;margin-left:auto}
-      #themeToggle{order:5}
-      nav[role="navigation"]{order:6;width:100%;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;margin:4px -16px -8px;padding:0 16px 10px;scroll-snap-type:x proximity;scrollbar-width:none}
-      nav[role="navigation"]::-webkit-scrollbar{display:none}
-      nav[role="navigation"] .tab-btn{flex:0 0 auto;scroll-snap-align:start}
+    @media(max-width:1280px){
+      .app-body{grid-template-columns:260px minmax(0,1fr)}
     }
-
-    @media(max-width:820px){
-      .grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .grid-5{grid-template-columns:repeat(3,minmax(0,1fr))}
+    @media(min-width:1025px){
+      body.sidebar-collapsed .app-body{grid-template-columns:92px minmax(0,1fr)}
+      body.sidebar-collapsed .app-sidebar{padding:28px 12px}
+      body.sidebar-collapsed .tab-btn{justify-content:center}
+      body.sidebar-collapsed .tab-btn .nav-label{display:none}
     }
-
+    @media(max-width:1024px){
+      .app-body{grid-template-columns:1fr}
+      .app-sidebar{position:fixed;inset:calc(64px + env(safe-area-inset-top,0px)) auto 0 0;width:260px;max-width:80vw;transform:translateX(-110%);transition:transform .24s ease,box-shadow .24s ease;box-shadow:var(--shadow);z-index:60}
+      body.sidebar-open .app-sidebar{transform:translateX(0)}
+      .app-main{padding:28px clamp(20px,3vw,36px) 44px}
+      .app-header{padding:calc(env(safe-area-inset-top,0px)) 20px 0 20px;min-height:64px}
+      body.sidebar-open{overflow:hidden}
+    }
     @media(max-width:720px){
-      header{padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
-      header h1{font-size:16px}
-      main{padding:14px}
-      .tab-btn{padding:7px 10px;font-size:12px}
-      .theme-toggle{padding:6px 10px}
-      header .scope{order:4;flex-direction:column;align-items:flex-start}
-      #accentBtn{order:2}
-      #themeToggle{order:3;margin-left:0}
-      nav[role="navigation"]{order:5;margin:8px -14px -8px;padding:0 14px 10px;scroll-snap-type:x proximity;scrollbar-width:none}
-      .grid-2,.grid-3,.grid-4,.grid-5{grid-template-columns:1fr}
+      .app-header{flex-wrap:wrap;row-gap:12px;height:auto;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 16px}
+      .header-left{width:100%}
+      .header-search{order:3;width:100%}
+      .header-actions{order:2;margin-left:auto}
+      .app-main{padding:24px 18px 40px}
+      .app-sidebar{inset:calc(64px + env(safe-area-inset-top,0px)) auto 0 0}
     }
-
     @media(max-width:600px){
       .map{height:320px}
-      header .scope{gap:6px}
+      .user-menu{width:100%;justify-content:space-between}
     }
-
-    html.is-mobile main{padding:12px}
-    html.is-mobile header{padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
-    html.is-mobile .tab.card{padding:12px}
-    html.is-mobile #dashboard .grid.kpi{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-    html.is-mobile #dashboard .grid.kpi .card{align-items:flex-start;gap:8px;min-height:88px;padding:16px}
+    html.is-mobile .app-main{padding:20px}
+    html.is-mobile .app-header{padding:calc(12px + env(safe-area-inset-top,0px)) 16px 16px;height:auto}
+    html.is-mobile .tab.card{padding:16px}
+    html.is-mobile #dashboard .grid.kpi{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    html.is-mobile #dashboard .grid.kpi .card{align-items:flex-start;gap:8px;min-height:88px;padding:18px}
     html.is-mobile #dashboard .grid.kpi .card h3{font-size:12px}
     html.is-mobile #dashboard .grid.kpi .value{font-size:clamp(26px,7vw,36px)}
     html.is-mobile #dashboard .two{grid-template-columns:1fr}
-    html.is-mobile #dashboard .two>.card{gap:10px}
+    html.is-mobile #dashboard .two>.card{gap:12px}
     html.is-mobile #dashboard .card .grid.grid-2{grid-template-columns:1fr}
-    html.is-mobile #timeline .timeline-layout{gap:10px}
+    html.is-mobile #timeline .timeline-layout{gap:12px}
     html.is-mobile #vendors form.grid-4,
     html.is-mobile #events form.grid-4,
     html.is-mobile #budget form.grid-5{grid-template-columns:1fr}
@@ -521,85 +543,14 @@ header .search-wrap{position:relative; max-width:360px; flex:1 1 300px}
     html.is-mobile table{table-layout:auto}
     html.is-mobile th,html.is-mobile td{padding:9px 12px;font-size:13px;white-space:nowrap;word-break:normal}
     html.is-mobile th{position:static}
-
-header .scope{display:inline-flex; align-items:center; gap:8px}
+    @media(max-width:820px){
+      .grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .grid-5{grid-template-columns:repeat(3,minmax(0,1fr))}
+    }
 #leafletMap{ position: relative; } /* ensures empty overlay anchors correctly */
 
   </style>
-
-<style>
-/* === Left Sidebar Layout (drop‑in) ====================================== */
-@media (min-width: 1024px) {
-  html, body { height: 100%; }
-  body {
-    display: grid;
-    grid-template-columns: 260px minmax(0, 1fr);
-    grid-template-areas: "sidebar content";
-    gap: 0;
-    min-height: 100vh;
-  }
-  header[role="banner"] {
-    grid-area: sidebar;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow: auto;
-    padding: 16px;
-    border-right: 1px solid var(--border);
-    border-bottom: 0; /* was topbar */
-    background: var(--panel);
-    box-shadow: none;
-  }
-  /* Title */
-  #appTitle { font-size: 18px; line-height: 1.2; margin: 0 0 12px 0; }
-
-  /* Search + scope become full-width blocks */
-  .search-wrap, .scope { width: 100%; }
-  .search-wrap { margin: 8px 0; }
-
-  /* Vertical nav */
-  nav[role="navigation"] {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin: 8px 0 12px 0;
-  }
-  nav .tab-btn {
-    width: 100%;
-    justify-content: flex-start;
-    text-align: left;
-  }
-
-  /* Accent + theme controls pinned to bottom */
-  .sidebar-spacer { flex: 1 1 auto; }
-  #themeToggle { margin-top: 8px; }
-
-  /* Main content */
-  main#main {
-    grid-area: content;
-    padding: 20px clamp(16px, 2.2vw, 28px);
-    max-width: none;
-  }
-}
-
-/* Collapsed sidebar (optional) */
-@media (min-width: 1024px) {
-  body.sidebar-collapsed { grid-template-columns: 72px minmax(0,1fr); }
-  body.sidebar-collapsed header[role="banner"] { padding: 12px 8px; }
-  body.sidebar-collapsed #appTitle, 
-  body.sidebar-collapsed .search-wrap,
-  body.sidebar-collapsed .scope,
-  body.sidebar-collapsed .color-chip .label,
-  body.sidebar-collapsed #themeLabel { display: none !important; }
-  body.sidebar-collapsed nav .tab-btn { justify-content: center; }
-}
-
-/* Subtle polish */
-nav .tab-btn[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--accent-3); }
-</style>
 </head>
 <body>
 <a class="skip" href="#main" data-testid="skip-link">Skip to content</a>
@@ -607,6 +558,9 @@ nav .tab-btn[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--accent-3);
 <svg width="0" height="0" style="position:absolute;left:-9999px;overflow:hidden" aria-hidden="true" focusable="false">
   <symbol id="ic-sun" viewBox="0 0 24 24"><path d="M6.76 4.84l-1.8-1.79L3.17 4.84l1.79 1.8 1.8-1.8zm10.48 0l1.8-1.79 1.79 1.79-1.79 1.8-1.8-1.8zM12 4V1h-0v3h0zm0 19v-3h0v3h0zM4 12H1v0h3v0zm19 0h-3v0h3v0zM6.76 19.16l-1.8 1.79-1.79-1.79 1.79-1.8 1.8 1.8zm10.48 0l1.8 1.79 1.79-1.79-1.79-1.8-1.8 1.8zM12 7a5 5 0 100 10 5 5 0 000-10z"/></symbol>
   <symbol id="ic-moon" viewBox="0 0 24 24"><path d="M12.74 2a9 9 0 109.26 11.45A7.5 7.5 0 0112.74 2z"/></symbol>
+  <symbol id="ic-menu" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></symbol>
+  <symbol id="ic-grid" viewBox="0 0 24 24"><path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/></symbol>
+  <symbol id="ic-analytics" viewBox="0 0 24 24"><path d="M4 20h16v2H4v-2zm1-1h2V9H5v10zm6 0h2V5h-2v14zm6 0h2v-7h-2v7z"/></symbol>
   <symbol id="ic-plus" viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></symbol>
   <symbol id="ic-edit" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></symbol>
   <symbol id="ic-trash" viewBox="0 0 24 24"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></symbol>
@@ -618,51 +572,115 @@ nav .tab-btn[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--accent-3);
   <symbol id="ic-funnel" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4L3 5z"/></symbol>
   <symbol id="ic-pin" viewBox="0 0 24 24"><path d="M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></symbol>
   <symbol id="ic-save" viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 00-2 2v14l4-4h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 7h8v2H7V7z"/></symbol>
+  <symbol id="ic-clipboard" viewBox="0 0 24 24"><path d="M16 4h-2.18A3 3 0 0011 2H9a3 3 0 00-2.82 2H4v18h16V4h-4zm-7 0a1 1 0 011-1h2a1 1 0 011 1H9zm9 16H6V6h2v2h8V6h2v14z"/></symbol>
+  <symbol id="ic-timeline" viewBox="0 0 24 24"><path d="M4 11h16v2H4z"/><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></symbol>
   <symbol id="ic-calendar" viewBox="0 0 24 24"><path d="M7 2h2v2h6V2h2v2h3v18H4V4h3V2zm13 8H4v10h16V10z"/></symbol>
   <symbol id="ic-map" viewBox="0 0 24 24"><path d="M15 4l-6 2-6-2v16l6 2 6-2 6 2V6l-6-2zM9 20l-4-1.33V5.33L9 6.67V20zm6 0l-4-1.33V6.67L15 5.33V20zm2-13.33l2 0.67v13.34l-2-0.67V6.67z"/></symbol>
   <symbol id="ic-users" viewBox="0 0 24 24"><path d="M16 11a4 4 0 10-4-4 4 4 0 004 4zm-8 0a4 4 0 10-4-4 4 4 0 004 4zm0 2c-2.67 0-8 1.34-8 4v3h12v-3c0-2.66-5.33-4-8-4zm8 0c-.84 0-1.73.08-2.63.24 1.74 1 2.63 2.34 2.63 3.76v3h8v-3c0-2.66-5.33-4-8-4z"/></symbol>
   <symbol id="ic-briefcase" viewBox="0 0 24 24"><path d="M10 4h4l1 2h5v14H4V6h5l1-2zm-4 4v10h12V8H6zm4 0h4V6h-4v2z"/></symbol>
   <symbol id="ic-link" viewBox="0 0 24 24"><path d="M3.9 12a5.1 5.1 0 015.1-5.1H12v2.1H9a3 3 0 100 6h3v2.1H9a5.1 5.1 0 01-5.1-5.1zm7.1-3h3a5.1 5.1 0 110 10.2H13v-2.1h1a3 3 0 100-6h-3V9z"/></symbol>
+  <symbol id="ic-settings" viewBox="0 0 24 24"><path d="M19.14 12.94a7.07 7.07 0 000-1.88l2.03-1.58-1.92-3.32-2.39.5a7.08 7.08 0 00-1.63-.94l-.36-2.44h-3.84l-.36 2.44a7.08 7.08 0 00-1.63.94l-2.39-.5-1.92 3.32 2.03 1.58a7.07 7.07 0 000 1.88l-2.03 1.58 1.92 3.32 2.39-.5a7.08 7.08 0 001.63.94l.36 2.44h3.84l.36-2.44a7.08 7.08 0 001.63-.94l2.39.5 1.92-3.32-2.03-1.58zM12 15.5a3.5 3.5 0 113.5-3.5 3.5 3.5 0 01-3.5 3.5z"/></symbol>
 </svg>
 
-<header role="banner" aria-label="Application header">
-<h1 id="appTitle">Event Planner Pro</h1>
-<div class="search-wrap no-print" aria-label="Global event search">
-  <input id="globalSearch" placeholder="Search events…" aria-label="Search events (global)" autocomplete="off" />
-  <div id="globalSearchList" role="listbox" style="display:none"></div>
-</div>
-  <nav role="navigation" aria-label="Primary">
-    <button class="tab-btn" data-testid="nav-dashboard" data-route="#/dashboard" aria-current="page">Dashboard</button>
-    <button class="tab-btn" data-testid="nav-analysis" data-route="#/analysis">Analysis</button>
-    <button class="tab-btn" data-testid="nav-events" data-route="#/events">Events</button>
-    <button class="tab-btn" data-testid="nav-post" data-route="#/post">Post-Event</button>
-    <button class="tab-btn" data-testid="nav-timeline" data-route="#/timeline">Timeline</button>
-    <button class="tab-btn" data-testid="nav-vendors" data-route="#/vendors">Vendors</button>
-    <button class="tab-btn" data-testid="nav-budget" data-route="#/budget">Budget</button>
-    <button class="tab-btn" data-testid="nav-tasks" data-route="#/tasks">Tasks</button>
-    <button class="tab-btn" data-testid="nav-map" data-route="#/map" aria-controls="map">Map</button>
-    <button class="tab-btn" data-testid="nav-settings" data-route="#/settings">Settings</button>
-  </nav>
-<div class="scope no-print">
-  <div class="small muted" aria-hidden="true">Scope</div>
-  <select id="scopeEvent" title="Data scope (All vs specific event)">
-    <option value="">All events</option>
-  </select>
-</div>
-<!-- Accent color picker (small chip + hidden input) -->
-<button id="accentBtn" class="color-chip no-print" type="button"
-          title="Pick accent color" aria-label="Pick accent color">
-    <span class="chip-swatch" aria-hidden="true"></span>
-    <input id="accentPicker" type="color" value="#7c3aed"
-           class="color-hit-target" aria-label="Pick accent color">
-  </button>
-  <button id="themeToggle" class="theme-toggle" title="Toggle theme" aria-pressed="false" data-testid="theme-toggle">
-    <svg class="icon" id="themeIcon" aria-hidden="true"><use href="#ic-sun"></use></svg>
-    <span id="themeLabel" class="label">Light</span>
-  </button>
-</header>
-
-<main id="main" tabindex="-1">
+<div class="app-shell">
+  <header class="app-header" role="banner" aria-label="Application header">
+    <div class="header-left">
+      <button id="sidebarToggle" class="sidebar-toggle no-print" type="button" aria-label="Toggle navigation" aria-expanded="true">
+        <svg class="icon" aria-hidden="true"><use href="#ic-menu"></use></svg>
+      </button>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">EP</span>
+        <div class="brand-text">
+          <h1 id="appTitle" class="brand-title">Event Planner Pro</h1>
+          <span class="brand-subtitle">Operations BI Console</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-search no-print" aria-label="Global event search">
+      <div class="search-wrap no-print" aria-label="Global event search">
+        <input id="globalSearch" placeholder="Search events…" aria-label="Search events (global)" autocomplete="off" />
+        <div id="globalSearchList" role="listbox" style="display:none"></div>
+      </div>
+    </div>
+    <div class="header-actions no-print">
+      <button id="userMenu" class="user-menu" type="button" aria-haspopup="menu" aria-expanded="false">
+        <span class="user-avatar" aria-hidden="true">AP</span>
+        <span class="user-name">Alex Parker</span>
+      </button>
+    </div>
+  </header>
+  <div id="sidebarOverlay" class="sidebar-overlay no-print" hidden></div>
+  <div class="app-body">
+    <aside class="app-sidebar no-print" aria-label="Primary navigation">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Workspace</div>
+        <div class="scope">
+          <div class="small muted" aria-hidden="true">Scope</div>
+          <select id="scopeEvent" title="Data scope (All vs specific event)">
+            <option value="">All events</option>
+          </select>
+        </div>
+      </div>
+      <nav role="navigation" aria-label="Primary">
+        <button class="tab-btn" data-testid="nav-dashboard" data-route="#/dashboard" aria-current="page" aria-label="Dashboard">
+          <svg class="icon" aria-hidden="true"><use href="#ic-grid"></use></svg>
+          <span class="nav-label">Dashboard</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-analysis" data-route="#/analysis" aria-label="Analysis">
+          <svg class="icon" aria-hidden="true"><use href="#ic-analytics"></use></svg>
+          <span class="nav-label">Analysis</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-events" data-route="#/events" aria-label="Events">
+          <svg class="icon" aria-hidden="true"><use href="#ic-calendar"></use></svg>
+          <span class="nav-label">Events</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-post" data-route="#/post" aria-label="Post-Event">
+          <svg class="icon" aria-hidden="true"><use href="#ic-clipboard"></use></svg>
+          <span class="nav-label">Post-Event</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-timeline" data-route="#/timeline" aria-label="Timeline">
+          <svg class="icon" aria-hidden="true"><use href="#ic-timeline"></use></svg>
+          <span class="nav-label">Timeline</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-vendors" data-route="#/vendors" aria-label="Vendors">
+          <svg class="icon" aria-hidden="true"><use href="#ic-users"></use></svg>
+          <span class="nav-label">Vendors</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-budget" data-route="#/budget" aria-label="Budget">
+          <svg class="icon" aria-hidden="true"><use href="#ic-briefcase"></use></svg>
+          <span class="nav-label">Budget</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-tasks" data-route="#/tasks" aria-label="Tasks">
+          <svg class="icon" aria-hidden="true"><use href="#ic-check"></use></svg>
+          <span class="nav-label">Tasks</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-map" data-route="#/map" aria-controls="map" aria-label="Map">
+          <svg class="icon" aria-hidden="true"><use href="#ic-map"></use></svg>
+          <span class="nav-label">Map</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-settings" data-route="#/settings" aria-label="Settings">
+          <svg class="icon" aria-hidden="true"><use href="#ic-settings"></use></svg>
+          <span class="nav-label">Settings</span>
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="accent-control">
+          <button id="accentBtn" class="color-chip" type="button" title="Pick accent color" aria-label="Pick accent color">
+            <span class="chip-swatch" aria-hidden="true"></span>
+            <input id="accentPicker" type="color" value="#7c3aed" class="color-hit-target" aria-label="Pick accent color">
+          </button>
+          <div class="accent-labels">
+            <span class="label-title">Accent</span>
+            <span class="label-sub">Theme color</span>
+          </div>
+        </div>
+        <button id="themeToggle" class="theme-toggle" title="Toggle theme" aria-pressed="false" data-testid="theme-toggle">
+          <svg class="icon" id="themeIcon" aria-hidden="true"><use href="#ic-sun"></use></svg>
+          <span id="themeLabel" class="label">Light</span>
+        </button>
+      </div>
+    </aside>
+    <main id="main" class="app-main" tabindex="-1">
   <!-- DASHBOARD -->
   <section id="dashboard" class="tab card" role="region" aria-labelledby="h-dashboard">
     <h2 id="h-dashboard" class="visually-hidden" style="position:absolute;left:-9999px">Dashboard</h2>
@@ -1042,6 +1060,8 @@ nav .tab-btn[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--accent-3);
     <div class="small muted">Keyboard: <kbd>g</kbd> then <kbd>d</kbd>/<kbd>e</kbd>/<kbd>t</kbd>/<kbd>v</kbd>/<kbd>b</kbd>/<kbd>m</kbd>/<kbd>s</kbd> to go to Dashboard/Events/Tasks/Vendors/Budget/Map/Settings.</div>
   </section>
 </main>
+  </div>
+</div>
 
 <script>
 /* ---------- Utils ---------- */
@@ -3831,34 +3851,61 @@ qs("#globalSearch")?.addEventListener("keydown",(e)=>{
 
 
 <script>
-(function addSidebarToggle(){
-  const KEY = "epp_sidebar_collapsed";
-  const header = document.querySelector('header[role="banner"]');
-  if (!header) return;
+(function initAppShell(){
+  const KEY="epp_sidebar_collapsed";
+  const toggle=qs("#sidebarToggle");
+  const overlay=qs("#sidebarOverlay");
+  const sidebar=qs(".app-sidebar");
+  if(!toggle||!sidebar) return;
+  const mq=window.matchMedia("(min-width: 1025px)");
+  const body=document.body;
 
-  // Restore state
-  if (localStorage.getItem(KEY) === "1") {
-    document.body.classList.add("sidebar-collapsed");
-  }
+  const syncDesktopState=()=>{
+    const collapsed=localStorage.getItem(KEY)==="1";
+    body.classList.toggle("sidebar-collapsed",collapsed);
+    body.classList.remove("sidebar-open");
+    toggle.setAttribute("aria-expanded",collapsed?"false":"true");
+    overlay?.setAttribute("hidden","");
+  };
 
-  // Button
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "ghost";
-  btn.style.marginTop = "6px";
-  btn.setAttribute("aria-pressed", document.body.classList.contains("sidebar-collapsed") ? "true" : "false");
-  btn.innerHTML = '<svg class="icon" aria-hidden="true"><use href="#ic-menu"></use></svg> <span class="label">Collapse</span>';
-  btn.addEventListener("click", () => {
-    const collapsed = document.body.classList.toggle("sidebar-collapsed");
-    btn.setAttribute("aria-pressed", collapsed ? "true" : "false");
-    localStorage.setItem(KEY, collapsed ? "1" : "0");
+  const syncMobileState=()=>{
+    body.classList.remove("sidebar-collapsed");
+    const open=body.classList.contains("sidebar-open");
+    toggle.setAttribute("aria-expanded",open?"true":"false");
+    if(open) overlay?.removeAttribute("hidden"); else overlay?.setAttribute("hidden","");
+  };
+
+  const applyMode=()=>{
+    if(mq.matches) syncDesktopState(); else syncMobileState();
+  };
+
+  applyMode();
+
+  toggle.addEventListener("click",()=>{
+    if(mq.matches){
+      const collapsed=body.classList.toggle("sidebar-collapsed");
+      toggle.setAttribute("aria-expanded",collapsed?"false":"true");
+      localStorage.setItem(KEY,collapsed?"1":"0");
+    }else{
+      const open=body.classList.toggle("sidebar-open");
+      toggle.setAttribute("aria-expanded",open?"true":"false");
+      if(open) overlay?.removeAttribute("hidden"); else overlay?.setAttribute("hidden","");
+    }
   });
 
-  // Add spacer to push controls to bottom and insert button after it
-  const spacer = document.createElement("div");
-  spacer.className = "sidebar-spacer";
-  header.appendChild(spacer);
-  header.appendChild(btn);
+  const closeMobile=()=>{
+    if(!body.classList.contains("sidebar-open")) return;
+    body.classList.remove("sidebar-open");
+    overlay?.setAttribute("hidden","");
+    toggle.setAttribute("aria-expanded","false");
+  };
+
+  overlay?.addEventListener("click",closeMobile);
+  document.addEventListener("keydown",(ev)=>{ if(ev.key==="Escape") closeMobile(); });
+
+  const handleChange=()=>{ body.classList.remove("sidebar-open"); applyMode(); };
+  if(typeof mq.addEventListener==="function") mq.addEventListener("change",handleChange);
+  else if(typeof mq.addListener==="function") mq.addListener(handleChange);
 })();
 
 // ---- Batched localStorage writes ----
