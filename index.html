@@ -47,6 +47,22 @@ Perf notes:
       --focus:#7c3aed66; --pill:#efeaff; --popover:#fff; --popover-border:#dcd3fb;
       --placeholder:#6b7280;
       --kbd:#111; --kbd-bg:#fff; --ring: 0 0 0 3px var(--focus);
+      --header-height:64px;
+      --shell-max:1360px;
+      --shell-pad-y:24px;
+      --shell-pad-x:clamp(20px,2.8vw,36px);
+      --layout-gap-lg:20px;
+      --layout-gap-md:16px;
+      --layout-gap-sm:12px;
+      --layout-gap-xs:8px;
+      --card-radius:14px;
+      --card-padding:16px;
+      --stack-gap-sm:12px;
+      --stack-gap-xs:8px;
+      --control-height:36px;
+      --table-cell-padding-y:8px;
+      --table-cell-padding-x:12px;
+      --map-height:360px;
     }
     /* --- Dark mode readability pass (higher contrast) --- */
     [data-theme="dark"]{
@@ -146,20 +162,39 @@ Perf notes:
     :focus-visible{outline:2px solid var(--accent-3); box-shadow:var(--ring); border-radius:6px}
     a.skip{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
     a.skip:focus{left:8px;top:8px;width:auto;height:auto;background:#fff;color:#000;padding:8px 10px;border-radius:8px;z-index:1000}
-    header{position:sticky;top:0;z-index:40;backdrop-filter:blur(10px);background:var(--glass);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 16px 12px}
-    header h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.4px}
-    nav[role="navigation"]{display:flex;gap:8px;flex-wrap:wrap}
-    .tab-btn{background:#fff;color:var(--text);border:1px solid var(--border);padding:8px 12px;font-size:13px;border-radius:12px;cursor:pointer;box-shadow:0 1px 0 #00000010,inset 0 0 0 1px #ffffff66;transition:transform .06s,box-shadow .12s,border-color .12s,background .12s}
+    .app-shell{min-height:100vh;display:flex;flex-direction:column;background:var(--overlay)}
+    .app-shell-body{flex:1;display:flex;flex-direction:column;min-height:0}
+    @media (min-width:1024px){.app-shell-body{flex-direction:row}}
+    .app-header{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:14px;justify-content:space-between;min-height:var(--header-height);padding:calc(6px + env(safe-area-inset-top)) var(--shell-pad-x) 6px;background:var(--panel);border-bottom:1px solid var(--border);box-shadow:0 1px 0 rgba(31,27,46,.04);backdrop-filter:blur(12px)}
+    .header-brand{display:flex;align-items:center;gap:12px}
+    .brand-title{margin:0;font-size:21px;font-weight:800;letter-spacing:.3px}
+    .header-search{flex:1;max-width:520px}
+    .header-search .search-wrap{position:relative;width:100%}
+    .header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto;justify-content:flex-end}
+    .icon-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:var(--control-height);padding:0 12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font:inherit;cursor:pointer;transition:box-shadow .15s ease,transform .12s ease,border-color .15s ease}
+    .icon-button svg{width:18px;height:18px}
+    .icon-button:hover{border-color:var(--accent-3);box-shadow:0 4px 16px rgba(124,58,237,.12)}
+    .icon-button:focus-visible{outline:2px solid var(--accent-3);box-shadow:var(--ring)}
+    .app-sidebar{background:var(--panel);border-right:1px solid var(--border);padding:20px clamp(14px,2vw,24px);display:flex;flex-direction:column;gap:var(--layout-gap-lg);width:268px;position:sticky;top:var(--header-height);height:calc(100vh - var(--header-height));overflow-y:auto}
+    @media (max-width:1023px){.app-sidebar{position:relative;top:auto;height:auto;width:100%;border-right:0;border-bottom:1px solid var(--border);padding:16px clamp(16px,4vw,24px);gap:var(--layout-gap-md)} }
+    .sidebar-header{display:flex;flex-direction:column;gap:12px}
+    .scope{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+    .scope select{color:var(--text)}
+    .app-sidebar nav{display:flex;flex-direction:column;gap:8px}
+    @media (max-width:1023px){.app-sidebar nav{flex-direction:row;flex-wrap:wrap}}
+    .tab-btn{display:flex;align-items:center;gap:10px;width:100%;min-height:var(--control-height);padding:0 12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.04),inset 0 0 0 1px rgba(255,255,255,.35);transition:transform .1s ease,box-shadow .15s ease,border-color .15s ease,background .15s ease}
+    .tab-btn .tab-icon{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center}
+    .tab-btn .tab-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
     [data-theme="dark"] .tab-btn{background:#141c2b;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05),0 1px 0 rgba(0,0,0,.35)}
-    .tab-btn:hover{border-color:var(--accent-3);box-shadow:0 4px 14px rgba(124,58,237,.2);transform:translateY(-1px)}
-    .tab-btn[aria-current="page"]{background:var(--active-tab-bg);border-color:var(--accent)}
+    .tab-btn:hover{border-color:var(--accent-3);box-shadow:0 6px 18px rgba(124,58,237,.16);transform:translateY(-1px)}
+    .tab-btn[aria-current="page"]{background:var(--active-tab-bg);border-color:var(--accent);box-shadow:0 8px 20px rgba(124,58,237,.18)}
     [data-theme="dark"] .tab-btn[aria-current="page"]{background:var(--active-tab-bg-dark)}
-    .theme-toggle{display:inline-flex;gap:10px;align-items:center;border:1px solid var(--border);border-radius:999px;padding:6px 12px;background:#fff;cursor:pointer}
+    .theme-toggle{display:inline-flex;align-items:center;gap:10px;border-radius:999px;padding:0 14px;min-height:var(--control-height);border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer}
     [data-theme="dark"] .theme-toggle{background:#141c2b}
-    .theme-toggle .label{font-size:12px;color:var(--muted)}
+    .theme-toggle .label{font-size:13px;color:var(--muted)}
 /* Accent color picker button */
 .color-chip{
-  width:28px; height:28px; border-radius:999px;
+  width:36px; height:36px; border-radius:999px;
   border:1px solid var(--border);
   background:linear-gradient(180deg,var(--accent-3),var(--accent));
   display:inline-flex; align-items:center; justify-content:center;
@@ -194,29 +229,31 @@ Perf notes:
 }
 
     .icon{width:18px;height:18px;display:inline-block}
-    main{padding:18px;max-width:1320px;margin:0 auto calc(56px + env(safe-area-inset-bottom))}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
-    .analysis-tab{display:flex;flex-direction:column;gap:16px}
-    .analysis-grid{display:grid;gap:16px}
+    main#main{flex:1;padding:var(--shell-pad-y) var(--shell-pad-x) calc(var(--shell-pad-y) + env(safe-area-inset-bottom));max-width:var(--shell-max);margin:0 auto;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--layout-gap-lg);grid-auto-rows:minmax(min-content,max-content)}
+    main#main:focus-visible{outline:2px solid var(--accent-3);outline-offset:6px;border-radius:var(--card-radius)}
+    main#main>*{grid-column:1/-1}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--card-radius);padding:var(--card-padding);box-shadow:var(--shadow)}
+    .analysis-tab{display:flex;flex-direction:column;gap:var(--layout-gap-lg)}
+    .analysis-grid{display:grid;gap:var(--layout-gap-lg)}
     @media (min-width:900px){.analysis-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    .analysis-card{display:flex;flex-direction:column;gap:16px}
-    .analysis-card h3{margin:0;font-size:20px;font-weight:700;color:var(--heading)}
-    .analysis-card h4{margin:0;font-size:16px;font-weight:700;color:var(--heading)}
+    .analysis-card{display:flex;flex-direction:column;gap:var(--stack-gap-sm)}
+    .analysis-card h3{margin:0;font-size:19px;font-weight:700;color:var(--heading)}
+    .analysis-card h4{margin:0;font-size:15px;font-weight:700;color:var(--heading)}
     .analysis-card p{margin:0;color:var(--muted)}
-    .analysis-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
-    .analysis-list li{border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--card)}
-    .analysis-metric-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
-    .analysis-label{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}
-    .analysis-value{font-size:22px;font-weight:700;color:var(--heading)}
-    .analysis-detail{margin-top:6px;font-size:13px;line-height:1.5;color:var(--muted)}
-    .connectivity-card{margin-top:18px;display:flex;flex-direction:column;gap:14px;}
-    .relationship-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;}
-    .relationship-item{border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;}
-    .relationship-health-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;}
+    .analysis-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+    .analysis-list li{border:1px solid var(--border);border-radius:12px;padding:11px;background:var(--card)}
+    .analysis-metric-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+    .analysis-label{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}
+    .analysis-value{font-size:20px;font-weight:700;color:var(--heading)}
+    .analysis-detail{margin-top:4px;font-size:13px;line-height:1.45;color:var(--muted)}
+    .connectivity-card{margin-top:16px;display:flex;flex-direction:column;gap:14px;}
+    .relationship-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--layout-gap-md);}
+    .relationship-item{border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;}
+    .relationship-health-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--layout-gap-md);}
     .relationship-health-card{border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;}
-    .relationship-health-card h4{margin:0;font-size:15px;color:var(--muted);font-weight:600;}
+    .relationship-health-card h4{margin:0;font-size:14px;color:var(--muted);font-weight:600;}
     .relationship-health-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
-    .relationship-health-list li{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);padding-bottom:6px;border-bottom:1px dashed var(--border);}
+    .relationship-health-list li{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);padding-bottom:6px;border-bottom:1px dashed var(--border);}
     .relationship-health-list li:last-child{border-bottom:none;padding-bottom:0;}
     .relationship-health-list strong{font-size:18px;color:var(--text);}
     .relationship-health-list strong.positive{color:var(--accent);}
@@ -233,51 +270,78 @@ Perf notes:
     .relationship-metrics span{background:var(--pill);border-radius:999px;padding:2px 8px;}
     .relationship-next{font-size:12px;color:var(--muted);}
     .relationship-empty{font-size:13px;color:var(--muted);}
-    .event-connections{margin-top:10px;padding:10px;border-radius:12px;background:var(--panel);border:1px solid var(--border);display:flex;flex-direction:column;gap:6px;}
-    .event-connections span{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
-    .event-connections strong{color:var(--text);}
+    .event-connections{margin-top:10px;padding:12px;border-radius:12px;background:var(--panel);border:1px solid var(--border);display:flex;flex-direction:column;gap:8px;}
+    .event-connection-item{display:flex;align-items:flex-start;gap:9px;font-size:12px;color:var(--muted);}
+    .event-connection-icon{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;color:var(--accent-2);}
+    .event-connection-icon .icon{width:16px;height:16px;display:block;fill:currentColor;}
+    .event-connection-text{display:flex;flex-direction:column;gap:2px;min-width:0;}
+    .event-connection-label{font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);}
+    .event-connection-value{color:var(--text);line-height:1.35;white-space:normal;word-break:break-word;}
     .multi-select{min-height:96px;padding:6px;border-radius:10px;border:1px solid var(--border);background:var(--card);font-family:inherit;font-size:13px;}
     [data-theme="dark"] .relationship-item{background:var(--card);border-color:var(--border);}
     [data-theme="dark"] .event-connections{background:var(--ghost-bg-dark, var(--panel));}
     #dashboard .card.kpi{background:var(--kpi-surface);border-color:var(--kpi-border);padding:0;box-shadow:0 12px 24px -16px var(--accent-2);text-align:left;transition:transform .12s ease,box-shadow .12s ease;display:flex}
     #dashboard .card.kpi:hover,#dashboard .card.kpi:focus-within{transform:translateY(-2px);box-shadow:0 18px 32px -18px var(--accent-2)}
-    #dashboard .card.kpi .kpi-trigger{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:18px;width:100%;height:100%;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;flex:1;border-radius:inherit}
-    .events-progress{margin:16px 0 24px;display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid var(--border);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
-    .events-progress .progress-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    #dashboard .card.kpi .kpi-trigger{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:16px;width:100%;height:100%;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;flex:1;border-radius:inherit}
+    .events-progress{margin:14px 0 20px;display:flex;flex-direction:column;gap:10px;padding:14px;border:1px solid var(--border);border-radius:var(--card-radius);background:var(--card);box-shadow:var(--shadow)}
+    .events-progress .progress-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
     .events-progress .progress-title{font-weight:600;font-size:14px;color:var(--kpi-heading);text-transform:uppercase;letter-spacing:.5px}
     .events-progress .progress-summary{font-size:12px;color:var(--muted)}
     .events-progress .progress-value{font-weight:700;color:var(--accent-2)}
-    .meter-track{position:relative;height:10px;border-radius:999px;background:var(--border);overflow:hidden}
+    .meter-track{position:relative;height:8px;border-radius:999px;background:var(--border);overflow:hidden}
     .meter-fill{position:absolute;inset:0;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-3));border-radius:inherit;transition:width .3s ease}
-    .event-card-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+    .event-card-grid{display:grid;gap:var(--layout-gap-md);grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
     /* === Events: BI row view & segmented toggle === */
-    .segmented{display:inline-flex;border:1px solid var(--border);border-radius:999px;overflow:hidden;background:var(--panel);margin-left:8px}
-    .segmented button{appearance:none;border:0;background:transparent;padding:6px 10px;font:inherit;color:var(--muted);cursor:pointer}
+    .segmented{display:inline-flex;border:1px solid var(--border);border-radius:999px;overflow:hidden;background:var(--panel);margin-left:6px}
+    .segmented button{appearance:none;border:0;background:transparent;padding:5px 10px;font:inherit;color:var(--muted);cursor:pointer}
     .segmented button[aria-pressed="true"]{background:var(--accent-1);color:#fff}
     .event-list-head{display:none;margin:8px 0 6px;border:1px solid var(--border);background:var(--panel);color:var(--muted);padding:8px 12px;border-radius:12px;font-size:12px}
-    .event-list-head .head-grid{display:grid;grid-template-columns:1.6fr 1.4fr .8fr 1fr auto;gap:16px}
+    .event-list-head .head-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1.3fr) minmax(0,.9fr) minmax(0,1.1fr) auto;gap:12px;align-items:center}
     /* Default cards layout remains */
     #events[data-event-view="cards"] .event-card-grid{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));}
-    /* Row view: one card per row, horizontally structured */
-    #events[data-event-view="rows"] .event-card-grid{grid-template-columns:1fr;}
-    #events[data-event-view="rows"] .event-card{display:grid;grid-template-columns:1.6fr 1.4fr .8fr 1fr auto;align-items:center;gap:16px;min-height:auto;padding:12px 16px}
-    #events[data-event-view="rows"] .event-card .event-card-header{margin:0}
-    #events[data-event-view="rows"] .event-card .event-card-title h4{font-size:16px;margin:0}
-    #events[data-event-view="rows"] .event-card .event-address{margin:0}
-    #events[data-event-view="rows"] .event-card .event-actions{margin:0;justify-content:flex-end}
-    #events[data-event-view="rows"] .event-card .event-progress{min-width:180px}
-    #events[data-event-view="rows"] .event-card .event-connections{border:1px solid var(--border);background:var(--card);border-radius:12px;padding:8px 10px}
-    #events[data-event-view="rows"] .event-card.is-editing{display:block;} /* fall back to full-card for editing */
+    /* Row view: compact BI rows */
+    #events[data-event-view="rows"] .event-card-grid{grid-template-columns:1fr;gap:var(--layout-gap-xs);}
+    #events[data-event-view="rows"] .event-card{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1.3fr) minmax(0,.9fr) minmax(0,1.1fr) auto;align-items:center;gap:14px;min-height:auto;padding:10px 16px 10px 20px;border-radius:12px;box-shadow:none;background:var(--panel);border:1px solid var(--border);}
+    #events[data-event-view="rows"] .event-card::before{content:"";position:absolute;left:10px;top:8px;bottom:8px;width:4px;border-radius:999px;background:var(--border);pointer-events:none}
+    #events[data-event-view="rows"] .event-card[data-status-theme="s-planning"]::before{background:#5b21b6}
+    #events[data-event-view="rows"] .event-card[data-status-theme="s-executing"]::before{background:#3730a3}
+    #events[data-event-view="rows"] .event-card[data-status-theme="s-completed"]::before{background:#047857}
+    [data-theme="dark"] #events[data-event-view="rows"] .event-card[data-status-theme="s-planning"]::before{background:#c4b5fd}
+    [data-theme="dark"] #events[data-event-view="rows"] .event-card[data-status-theme="s-executing"]::before{background:#a5b4fc}
+    [data-theme="dark"] #events[data-event-view="rows"] .event-card[data-status-theme="s-completed"]::before{background:#86efac}
+    #events[data-event-view="rows"] .event-card .event-card-header{margin:0;align-items:center;gap:10px;}
+    #events[data-event-view="rows"] .event-card .event-card-title{flex-direction:row;align-items:center;gap:8px;min-width:0;}
+    #events[data-event-view="rows"] .event-card .event-card-title h4{font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    #events[data-event-view="rows"] .event-card .event-meta-row{flex-wrap:nowrap;gap:8px;min-width:0;font-size:12px;color:var(--muted);}
+    #events[data-event-view="rows"] .event-card .event-meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:26ch;}
+    #events[data-event-view="rows"] .event-card .event-address{margin:0;background:none;border:0;padding:0;font-size:13px;color:var(--muted);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;min-height:auto;line-height:1.35;}
+    #events[data-event-view="rows"] .event-card .event-progress{min-width:0;gap:5px;}
+    #events[data-event-view="rows"] .event-card .event-progress .progress-label{font-size:12px;font-weight:600;color:var(--muted);}
+    #events[data-event-view="rows"] .event-card .event-progress .progress-label span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:24ch;}
+    #events[data-event-view="rows"] .event-card .event-progress .meter-track{height:6px;}
+    #events[data-event-view="rows"] .event-card .event-connections{margin:0;padding:0;border:0;background:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px;align-items:stretch;}
+    #events[data-event-view="rows"] .event-card .event-connection-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:12px;border:1px solid var(--border);background:var(--pill);font-size:12px;color:var(--muted);min-width:0;width:100%;}
+    #events[data-event-view="rows"] .event-card .event-connection-icon{width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;color:var(--accent-2);}
+    #events[data-event-view="rows"] .event-card .event-connection-icon .icon{width:14px;height:14px;fill:currentColor;}
+    #events[data-event-view="rows"] .event-card .event-connection-text{flex-direction:column;gap:2px;align-items:flex-start;min-width:0;}
+    #events[data-event-view="rows"] .event-card .event-connection-label{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase;}
+    #events[data-event-view="rows"] .event-card .event-connection-value{color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;}
+    #events[data-event-view="rows"] .event-card .event-actions{margin:0;justify-content:flex-start;align-items:flex-start;gap:6px;flex-wrap:wrap;}
+    #events[data-event-view="rows"] .event-card .event-actions button{min-width:0;padding:0 12px;flex:0 0 auto;min-height:32px;font-size:12px;line-height:1.1;}
+    #events[data-event-view="rows"] .event-card .event-actions .icon{width:14px;height:14px;}
+    #events[data-event-view="rows"] .event-card .status{font-size:12px;}
+    #events[data-event-view="rows"] .event-card.is-editing{display:block;background:var(--card);box-shadow:var(--shadow);} /* fall back to full-card for editing */
     #events[data-event-view="rows"] .events-empty{display:block}
     #events[data-event-view="rows"] .event-card-header{grid-column:1}
     #events[data-event-view="rows"] .event-address{grid-column:2}
     #events[data-event-view="rows"] .event-progress{grid-column:3}
     #events[data-event-view="rows"] .event-connections{grid-column:4}
     #events[data-event-view="rows"] .event-actions{grid-column:5}
-    #events[data-event-view="rows"] .event-card .status{margin-left:auto}
-    #events[data-event-view="rows"] .event-card .event-card-title .event-meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40ch}
     /* Show header row only for row view */
     #events[data-event-view="rows"] .event-list-head{display:block}
+    @media (max-width:1200px){
+      #events[data-event-view="rows"] .event-card .event-connections{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));}
+    }
     @media (max-width: 900px){
       #events[data-event-view="rows"] .event-card{grid-template-columns:1fr;grid-auto-rows:auto}
       #events[data-event-view="rows"] .event-card-header,
@@ -285,32 +349,39 @@ Perf notes:
       #events[data-event-view="rows"] .event-progress,
       #events[data-event-view="rows"] .event-connections,
       #events[data-event-view="rows"] .event-actions{grid-column:1}
+      #events[data-event-view="rows"] .event-card .event-card-title{flex-direction:column;align-items:flex-start;gap:6px;}
+      #events[data-event-view="rows"] .event-card .event-meta-row{flex-wrap:wrap;}
+      #events[data-event-view="rows"] .event-card .event-meta{max-width:100%;}
+      #events[data-event-view="rows"] .event-card .event-connections{grid-template-columns:1fr;}
       #events[data-event-view="rows"] .event-list-head{display:none}
     }
 
-    .event-card{border:1px solid var(--border);border-radius:16px;padding:18px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px;min-height:220px;position:relative}
-    .event-card.is-editing{gap:16px;padding:18px 18px 16px;border-color:var(--accent-2);box-shadow:0 12px 28px -18px var(--accent-2)}
-    .event-card-header{display:flex;align-items:flex-start;gap:12px}
-    .event-card-title{display:flex;flex-direction:column;gap:6px;flex:1}
-    .event-card-title h4{margin:0;font-size:17px;font-weight:700;color:var(--text)}
-    .event-meta{font-size:12px;color:var(--muted)}
-    .event-address{font-size:13px;color:var(--text);line-height:1.4;background:var(--kpi-surface);border-radius:12px;padding:10px 12px;border:1px solid var(--kpi-border)}
-    .event-progress{display:flex;flex-direction:column;gap:6px}
+    .event-card{border:1px solid var(--border);border-radius:var(--card-radius);padding:16px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;min-height:200px;position:relative}
+    .event-card.is-editing{gap:14px;padding:16px;border-color:var(--accent-2);box-shadow:0 12px 28px -18px var(--accent-2)}
+    .event-card-header{display:flex;align-items:flex-start;gap:10px}
+    .event-card-header .status{margin-left:auto}
+    .event-card-title{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
+    .event-card-title h4{margin:0;font-size:16px;font-weight:700;color:var(--text)}
+    .event-meta-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:12px;color:var(--muted)}
+    .event-meta{display:inline-flex;align-items:center;gap:6px;font-size:inherit;color:inherit;}
+    .event-meta.owner-meta::before{content:"•";color:var(--muted);margin-right:4px}
+    .event-address{font-size:13px;color:var(--text);line-height:1.4;background:var(--kpi-surface);border-radius:12px;padding:8px 10px;border:1px solid var(--kpi-border)}
+    .event-progress{display:flex;flex-direction:column;gap:5px}
     .event-progress .progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
-    .event-actions{display:flex;gap:10px;margin-top:auto}
+    .event-actions{display:flex;gap:8px;margin-top:auto}
     .event-actions button{flex:1;justify-content:center}
-    .event-card-form{display:flex;flex-direction:column;gap:14px}
+    .event-card-form{display:flex;flex-direction:column;gap:var(--layout-gap-sm)}
     .event-card-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
     .event-card-form-grid .full{grid-column:1/-1}
     .event-card-form label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted);font-weight:600}
     .event-card-form input,.event-card-form select{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--text)}
     .event-card-form input:focus-visible,.event-card-form select:focus-visible{outline:2px solid var(--accent-3);box-shadow:var(--ring)}
-    .event-card-form-actions{display:flex;gap:10px}
+    .event-card-form-actions{display:flex;gap:var(--layout-gap-sm)}
     .event-card-form-actions button{flex:1;justify-content:center}
-    .events-empty{padding:18px;border:1px dashed var(--border);border-radius:14px;text-align:center;color:var(--muted);font-size:13px}
+    .events-empty{padding:16px;border:1px dashed var(--border);border-radius:14px;text-align:center;color:var(--muted);font-size:13px}
     #dashboard .card.kpi .kpi-trigger:focus-visible{outline:2px solid var(--accent-3);box-shadow:var(--ring);border-radius:inherit}
     #dashboard .card.kpi h3{margin:0;font-size:13px;font-weight:700;color:var(--kpi-heading);letter-spacing:.2px;text-transform:uppercase}
-    #dashboard .card.kpi .value{font-size:36px;font-weight:900;margin:0;color:var(--kpi-value);text-shadow:0 0 12px var(--glow)}
+    #dashboard .card.kpi .value{font-size:32px;font-weight:900;margin:0;color:var(--kpi-value);text-shadow:0 0 12px var(--glow)}
     #dashboard .card.kpi .kpi-sub{
       font-size:12px;
       color:var(--kpi-subtext);
@@ -326,32 +397,32 @@ Perf notes:
       width:100%;
       max-height:calc(1.35em*3);
     }
-    #dashboard .kpi-detail{margin-top:18px;gap:14px;display:flex;flex-direction:column}
+    #dashboard .kpi-detail{margin-top:16px;gap:14px;display:flex;flex-direction:column}
     #dashboard .kpi-detail[hidden]{display:none}
     #dashboard .kpi-detail .detail-header{align-items:center}
-    #dashboard .kpi-detail-body{display:flex;flex-direction:column;gap:12px;font-size:13px;color:var(--muted)}
+    #dashboard .kpi-detail-body{display:flex;flex-direction:column;gap:var(--layout-gap-sm);font-size:13px;color:var(--muted)}
     #dashboard .kpi-detail-body p{margin:0}
-    #dashboard .kpi-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
-    #dashboard .kpi-list li{padding:10px 12px;border:1px solid var(--kpi-border);border-radius:12px;background:var(--card);box-shadow:0 6px 16px -12px rgba(67,50,120,.4)}
+    #dashboard .kpi-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:var(--layout-gap-sm)}
+    #dashboard .kpi-list li{padding:9px 11px;border:1px solid var(--kpi-border);border-radius:12px;background:var(--card);box-shadow:0 6px 16px -12px rgba(67,50,120,.4)}
     #dashboard .kpi-list li .primary{font-weight:600;color:var(--text);margin-bottom:4px}
     #dashboard .kpi-list li .secondary{font-size:12px;color:var(--muted)}
     .collapsible-card{padding:0;overflow:hidden}
-    .collapsible-card summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;background:var(--ghost-bg);border-radius:16px}
+    .collapsible-card summary{list-style:none;display:flex;align-items:center;gap:8px;padding:11px 14px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;background:var(--ghost-bg);border-radius:var(--card-radius)}
     .collapsible-card summary:focus-visible{outline:2px solid var(--accent-3);outline-offset:2px}
     .collapsible-card summary::-webkit-details-marker{display:none}
     .collapsible-card summary::after{content:"";border:6px solid transparent;border-bottom-color:var(--muted);margin-left:auto;transition:transform .2s ease}
-    .collapsible-card[open] summary{border-bottom:1px solid var(--border);border-radius:16px 16px 0 0}
+    .collapsible-card[open] summary{border-bottom:1px solid var(--border);border-radius:var(--card-radius) var(--card-radius) 0 0}
     .collapsible-card[open] summary::after{transform:rotate(180deg)}
     [data-theme="dark"] .collapsible-card summary{background:var(--ghost-bg-dark)}
-    .collapsible-body{padding:14px;display:flex;flex-direction:column;gap:12px}
-    .filters-bar{margin:0 0 16px}
-    .filters-content{display:flex;flex-direction:column;gap:12px}
-    .slot-editor-body{display:flex;flex-direction:column;gap:12px}
+    .collapsible-body{padding:14px;display:flex;flex-direction:column;gap:var(--layout-gap-sm)}
+    .filters-bar{margin:0 0 14px}
+    .filters-content{display:flex;flex-direction:column;gap:var(--layout-gap-sm)}
+    .slot-editor-body{display:flex;flex-direction:column;gap:var(--layout-gap-sm)}
     .filters-toolbar{display:flex;justify-content:flex-end}
     .filters-toolbar button{margin-left:auto}
     .filters-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
     @media(max-width:720px){.filters-grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}}
-    .grid{display:grid;gap:12px}
+    .grid{display:grid;gap:var(--layout-gap-md)}
     .grid>*{min-width:0}
     .grid>.card,
     .grid>form{width:100%}
@@ -361,46 +432,49 @@ Perf notes:
     .grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
     .grid-5{grid-template-columns:repeat(5,minmax(0,1fr))}
     .gap-tight{gap:8px}
-    .grid.kpi{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .grid.kpi{grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--layout-gap-lg)}
     @media(max-width:1000px){.grid.kpi{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:620px){
       #dashboard .grid.kpi{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin:0}
       #dashboard .grid.kpi .card{min-width:0}
     }
-    #timeline .timeline-layout{display:flex;flex-direction:column;gap:12px}
+    #timeline .timeline-layout{display:flex;flex-direction:column;gap:var(--layout-gap-sm)}
     #timeline .slot-editor-card{align-self:stretch}
     #timeline .slots-card{display:flex;flex-direction:column}
     #timeline .slots-card .table-wrap{flex:1}
     #events form.grid-4,
     #vendors form.grid-4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
     #budget form.grid-5{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
-    .card h3{margin:0 0 6px;font-size:14px;color:var(--muted);font-weight:700}
-    .kpi .value{font-size:34px;font-weight:900;margin-top:6px;color:var(--accent-2);text-shadow:0 0 8px var(--glow)}
+    .card h3{margin:0 0 10px;font-size:17px;color:var(--muted);font-weight:700;letter-spacing:.2px}
+    .kpi .value{font-size:32px;font-weight:900;margin-top:6px;color:var(--accent-2);text-shadow:0 0 8px var(--glow)}
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .spacer{flex:1}.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;align-items:stretch}
-    .two>.card{display:flex;flex-direction:column;gap:12px}
+    .spacer{flex:1}.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--layout-gap-lg);align-items:stretch}
+    .two>.card{display:flex;flex-direction:column;gap:var(--stack-gap-sm)}
     .two>.card .table-wrap{flex:1}
     @media(max-width:1100px){.two{grid-template-columns:1fr}}
-    input,select,textarea,button{background:#fff;color:var(--text);border:1px solid var(--border);border-radius:12px;padding:9px 12px;font-size:14px;box-shadow:inset 0 0 0 1px #ffffffcc}
+    input,select,textarea{background:#fff;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px 11px;font-size:14px;min-height:var(--control-height);box-shadow:inset 0 0 0 1px #ffffffcc}
+    button{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:0 14px;min-height:var(--control-height);font-size:14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:inset 0 0 0 1px #ffffffcc;cursor:pointer;transition:box-shadow .15s ease,border-color .15s ease,transform .1s ease}
+    button:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(31,27,46,.08)}
     input::placeholder,textarea::placeholder{color:var(--placeholder);opacity:.75}
     [data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea,[data-theme="dark"] button{background:#111827;border-color:#3b4a6a;box-shadow:inset 0 0 0 1px rgba(148,163,184,.15);color:var(--text)}
     input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent-3);box-shadow:0 0 0 3px var(--focus),inset 0 0 0 1px #ffffff80}
-    textarea{min-height:100px}
+    textarea{min-height:96px}
     button.primary{background:linear-gradient(180deg,#9f7aea,#7c3aed);color:#fff;border-color:var(--accent)}
     button.primary:hover{box-shadow:0 6px 20px rgba(124,58,237,.35)}
     button.ghost{background:var(--ghost-bg)}[data-theme="dark"] button.ghost{background:var(--ghost-bg-dark)}
     button.success{background:linear-gradient(180deg,#10b981,#059669);color:#fff;border-color:#10b981}
     button.danger{background:linear-gradient(180deg,#ef4444,#b91c1c);color:#fff;border-color:#ef4444}
-    button.link{background:transparent;border-color:transparent;text-decoration:underline;cursor:pointer;padding:4px 6px;border-radius:8px}
+    button.link{background:transparent;border-color:transparent;text-decoration:underline;cursor:pointer;padding:4px 6px;border-radius:8px;min-height:auto;font-weight:500}
     .table-wrap{overflow:auto;border-radius:12px;border:1px solid var(--border);-webkit-overflow-scrolling:touch}
     table{width:100%;border-collapse:collapse}
-    th,td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:top}
+    th,td{padding:var(--table-cell-padding-y) var(--table-cell-padding-x);border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:top}
     th{text-align:left;color:var(--muted);background:var(--th-bg);position:sticky;top:0;z-index:1}
     [data-theme="dark"] th{background:var(--th-bg);color:var(--text)}
     tbody tr:nth-child(odd) td{background:var(--table-odd)}
     [data-theme="dark"] tr:hover td{background:var(--row-hover-dark)}
     tr:hover td{background:var(--row-hover)}
-    .status{padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid var(--border);white-space:nowrap}
+    .status{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--border);white-space:nowrap;line-height:1}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:currentColor;display:inline-block}
     .s-planning{background:#ede9fe;color:#5b21b6}.s-executing{background:#e0e7ff;color:#3730a3}
     .s-completed{background:#e6f9f2;color:#065f46;border-color:#10b98166}.s-overdue{background:#fee2e2;color:#991b1b;border-color:#ef444466}
     [data-theme="dark"] .s-planning{background:#291f5f;color:#c4b5fd}
@@ -409,16 +483,16 @@ Perf notes:
     [data-theme="dark"] .s-overdue{background:#3a1820;color:#fecaca}
     .pill{padding:3px 8px;border-radius:999px;border:1px solid var(--border);font-size:12px;background:var(--pill);color:var(--text)}
     .muted{color:var(--muted)} .hr{height:1px;background:var(--border);margin:12px 0}
-    .map{height:440px;border-radius:12px;border:1px solid var(--border);overflow:hidden}
+    .map{height:var(--map-height);border-radius:12px;border:1px solid var(--border);overflow:hidden}
     .autocomplete-wrap{position:relative}
     .autocomplete-list{position:absolute;top:100%;left:0;right:0;z-index:30;background:var(--popover);border:1px solid var(--popover-border);border-radius:12px;margin-top:6px;box-shadow:var(--shadow);max-height:260px;overflow:auto}
     .autocomplete-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px}
     .autocomplete-item:last-child{border-bottom:0}
     .autocomplete-item:hover,.autocomplete-item.active{background:var(--row-hover)}
     [data-theme="dark"] .autocomplete-item:hover,[data-theme="dark"] .autocomplete-item.active{background:var(--row-hover-dark)}
-    .kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .col{background:var(--card);border:1px dashed var(--border);border-radius:12px;padding:10px;min-height:220px}
-    .ticket{background:#fff;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px;margin:6px 0;box-shadow:0 1px 0 #00000010}
+    .kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--layout-gap-md)}
+    .col{background:var(--card);border:1px dashed var(--border);border-radius:12px;padding:14px;min-height:200px}
+    .ticket{background:#fff;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px;margin:5px 0;box-shadow:0 1px 0 #00000010}
     [data-theme="dark"] .ticket{background:var(--card);border-color:var(--border)}
     .ticket.overdue{border-color:#ef4444}
     .ticket .meta{font-size:12px;color:var(--muted)}
@@ -432,14 +506,78 @@ Perf notes:
       .table-wrap{border:0;overflow:visible}
       th{position:static}
     }
-header { gap: 14px; }
-header .search-wrap{position:relative; max-width:360px; flex:1 1 300px}
-#globalSearch{width:100%}
-#globalSearchList{position:absolute; top:100%; left:0; right:0; z-index:50; background:var(--popover); border:1px solid var(--popover-border); border-radius:12px; margin-top:6px; box-shadow:var(--shadow); max-height:260px; overflow:auto}
-.search-item{padding:10px 12px; cursor:pointer; border-bottom:1px solid var(--border); font-size:13px}
-.search-item:last-child{border-bottom:0}
-.search-item:hover{background:var(--row-hover)}
-[data-theme="dark"] .search-item:hover,[data-theme="dark"] .search-item.active{background:var(--row-hover-dark)}
+    .app-header{gap:18px}
+    .header-search{min-width:220px}
+    #globalSearch{width:100%}
+    #globalSearchList{position:absolute;top:100%;left:0;right:0;z-index:70;background:var(--popover);border:1px solid var(--popover-border);border-radius:12px;margin-top:4px;box-shadow:var(--shadow);max-height:260px;overflow:auto}
+    .search-item{padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px}
+    .search-item:last-child{border-bottom:0}
+    .search-item:hover{background:var(--row-hover)}
+    [data-theme="dark"] .search-item:hover,[data-theme="dark"] .search-item.active{background:var(--row-hover-dark)}
+    .zoom-menu-wrap{position:relative;display:flex}
+    .zoom-toggle{display:flex;align-items:center;gap:6px;height:var(--control-height);padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:inherit;font:inherit;cursor:pointer;transition:border-color .15s ease,box-shadow .15s ease,background .15s ease}
+    .zoom-toggle .icon{width:18px;height:18px}
+    .zoom-toggle:hover{border-color:var(--accent-3);background:var(--ghost-bg)}
+    .zoom-menu-wrap.open .zoom-toggle{border-color:var(--accent);box-shadow:0 0 0 2px var(--focus)}
+    .zoom-panel{position:absolute;top:calc(100% + 8px);right:0;width:min(280px,calc(100vw - 32px));padding:16px;border-radius:14px;border:1px solid var(--popover-border);background:var(--popover);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px;z-index:90}
+    .zoom-row{display:flex;flex-direction:column;gap:8px}
+    .zoom-row label{font-weight:600;display:flex;justify-content:space-between;align-items:center;font-size:14px}
+    .zoom-value{font-weight:600;color:var(--accent)}
+    .zoom-panel input[type="range"]{width:100%}
+    .zoom-hint{margin:0}
+    .user-menu{display:inline-flex;align-items:center;gap:10px;min-height:var(--control-height);padding:0 14px;border-radius:999px;border:1px solid var(--border);background:var(--card);color:var(--text);font-weight:600;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+    .user-menu .avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:.2px}
+    .user-menu .user-name{white-space:nowrap}
+    .user-menu svg{width:16px;height:16px;opacity:.6}
+    .user-menu-wrap{position:relative;display:flex}
+    .user-menu-wrap .user-menu{width:auto}
+    .user-menu-wrap.open .user-menu{border-color:var(--accent-3);box-shadow:0 0 0 2px var(--focus)}
+    .user-menu-panel{position:absolute;top:calc(100% + 10px);right:0;min-width:260px;max-width:min(320px,calc(100vw - 32px));background:var(--popover);border:1px solid var(--popover-border);border-radius:var(--card-radius);box-shadow:var(--shadow);padding:14px;display:none;z-index:80}
+    .user-menu-wrap.open .user-menu-panel{display:block}
+    .profile-menu-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-weight:600}
+    .profile-hint{font-size:12px;color:var(--muted)}
+    .profile-menu-list{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+    .profile-choice{display:flex;align-items:center;justify-content:space-between;width:100%;padding:7px 11px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:inherit;font:inherit;cursor:pointer;transition:border-color .15s ease,box-shadow .15s ease}
+    .profile-choice:hover{border-color:var(--accent-3)}
+    .profile-choice[aria-checked="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--focus)}
+    .profile-choice .profile-role{font-size:12px;color:var(--muted)}
+    .profile-add-toggle{margin-top:12px;background:none;border:none;padding:0;color:var(--accent);font-weight:600;cursor:pointer;align-self:flex-start}
+    .profile-add-toggle:disabled{opacity:.4;cursor:not-allowed}
+    .profile-form{margin-top:12px;display:flex;flex-direction:column;gap:var(--layout-gap-sm)}
+    .profile-form label{display:flex;flex-direction:column;gap:4px;font-size:14px}
+    .profile-form input,.profile-form select{height:var(--control-height);border-radius:10px;border:1px solid var(--border);padding:0 10px;background:var(--card);font:inherit;color:inherit}
+    .profile-form .profile-hint{margin-top:2px}
+    .profile-settings-list{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:var(--layout-gap-sm)}
+    .profile-settings-list li{border:1px solid var(--border);border-radius:12px;background:var(--card);padding:11px}
+    .profile-settings-list li .assignment{margin-top:4px;font-size:12px;color:var(--muted)}
+    .app-sidebar .sidebar-footer{margin-top:auto;display:flex;flex-direction:column;gap:var(--layout-gap-sm)}
+    body.sidebar-collapsed .app-sidebar{width:84px;padding:18px 12px}
+    body.sidebar-collapsed .app-sidebar .scope,body.sidebar-collapsed .app-sidebar .sidebar-header{display:none}
+    body.sidebar-collapsed .app-sidebar nav .tab-btn{justify-content:center;padding:0 12px;gap:0}
+    body.sidebar-collapsed .app-sidebar nav .tab-btn .tab-label{display:none}
+    body.sidebar-collapsed #sidebarToggle .label{display:none}
+    @media(max-width:1023px){
+      .app-header{flex-wrap:wrap;align-items:flex-start;row-gap:12px}
+      .header-brand{width:100%;justify-content:space-between}
+      .header-search{order:3;width:100%}
+      .header-actions{order:2;margin-left:0;justify-content:flex-end}
+      .zoom-panel{right:auto;left:0}
+      .app-sidebar{flex-direction:column;align-items:flex-start}
+      .app-sidebar nav{gap:8px}
+      body.sidebar-collapsed .app-sidebar{width:100%;padding:16px clamp(16px,4vw,24px)}
+      body.sidebar-collapsed .app-sidebar .scope,body.sidebar-collapsed .app-sidebar .sidebar-header{display:flex}
+      body.sidebar-collapsed .app-sidebar nav .tab-btn .tab-label{display:block}
+    }
+    @media(max-width:720px){
+      .app-header{padding:calc(8px + env(safe-area-inset-top)) 16px 8px}
+      .brand-title{font-size:18px}
+      .header-actions{width:100%;justify-content:flex-start;gap:10px}
+      .zoom-menu-wrap{width:100%}
+      .zoom-toggle{width:100%;justify-content:flex-start}
+      .user-menu-wrap{width:100%}
+      .user-menu-wrap .user-menu{width:100%;justify-content:flex-start}
+      .app-sidebar{padding:12px 16px}
+    }
 /* Palette fallbacks (will be overwritten by JS when you pick a color) */
 :root{
   --th-bg:#f5f0ff;
@@ -466,54 +604,27 @@ header .search-wrap{position:relative; max-width:360px; flex:1 1 300px}
   --kpi-value:#f6f5ff;
 }
 
-    @media(max-width:980px){
-      header{flex-wrap:wrap;align-items:flex-start;row-gap:12px;justify-content:flex-start}
-      header h1{flex:1 1 100%;margin-bottom:4px}
-      header .search-wrap{order:3;flex:1 1 100%;max-width:none}
-      header .scope{order:2;flex:1 1 100%;justify-content:space-between}
-      header .scope select{width:100%}
-      #accentBtn{order:4;margin-left:auto}
-      #themeToggle{order:5}
-      nav[role="navigation"]{order:6;width:100%;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;margin:4px -16px -8px;padding:0 16px 10px;scroll-snap-type:x proximity;scrollbar-width:none}
-      nav[role="navigation"]::-webkit-scrollbar{display:none}
-      nav[role="navigation"] .tab-btn{flex:0 0 auto;scroll-snap-align:start}
-    }
-
     @media(max-width:820px){
       .grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}
       .grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
       .grid-5{grid-template-columns:repeat(3,minmax(0,1fr))}
     }
 
-    @media(max-width:720px){
-      header{padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
-      header h1{font-size:16px}
-      main{padding:14px}
-      .tab-btn{padding:7px 10px;font-size:12px}
-      .theme-toggle{padding:6px 10px}
-      header .scope{order:4;flex-direction:column;align-items:flex-start}
-      #accentBtn{order:2}
-      #themeToggle{order:3;margin-left:0}
-      nav[role="navigation"]{order:5;margin:8px -14px -8px;padding:0 14px 10px;scroll-snap-type:x proximity;scrollbar-width:none}
-      .grid-2,.grid-3,.grid-4,.grid-5{grid-template-columns:1fr}
-    }
-
     @media(max-width:600px){
       .map{height:320px}
-      header .scope{gap:6px}
     }
 
-    html.is-mobile main{padding:12px}
-    html.is-mobile header{padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
-    html.is-mobile .tab.card{padding:12px}
-    html.is-mobile #dashboard .grid.kpi{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-    html.is-mobile #dashboard .grid.kpi .card{align-items:flex-start;gap:8px;min-height:88px;padding:16px}
+    html.is-mobile main#main{padding:18px calc(16px + env(safe-area-inset-left)) calc(26px + env(safe-area-inset-bottom));gap:var(--layout-gap-sm)}
+    html.is-mobile .app-header{padding:calc(8px + env(safe-area-inset-top)) 16px 8px}
+    html.is-mobile .tab.card{padding:11px}
+    html.is-mobile #dashboard .grid.kpi{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--layout-gap-sm)}
+    html.is-mobile #dashboard .grid.kpi .card{align-items:flex-start;gap:8px;min-height:84px;padding:14px}
     html.is-mobile #dashboard .grid.kpi .card h3{font-size:12px}
-    html.is-mobile #dashboard .grid.kpi .value{font-size:clamp(26px,7vw,36px)}
+    html.is-mobile #dashboard .grid.kpi .value{font-size:clamp(24px,6.5vw,34px)}
     html.is-mobile #dashboard .two{grid-template-columns:1fr}
-    html.is-mobile #dashboard .two>.card{gap:10px}
+    html.is-mobile #dashboard .two>.card{gap:var(--layout-gap-sm)}
     html.is-mobile #dashboard .card .grid.grid-2{grid-template-columns:1fr}
-    html.is-mobile #timeline .timeline-layout{gap:10px}
+    html.is-mobile #timeline .timeline-layout{gap:var(--layout-gap-sm)}
     html.is-mobile #vendors form.grid-4,
     html.is-mobile #events form.grid-4,
     html.is-mobile #budget form.grid-5{grid-template-columns:1fr}
@@ -521,85 +632,10 @@ header .search-wrap{position:relative; max-width:360px; flex:1 1 300px}
     html.is-mobile table{table-layout:auto}
     html.is-mobile th,html.is-mobile td{padding:9px 12px;font-size:13px;white-space:nowrap;word-break:normal}
     html.is-mobile th{position:static}
-
-header .scope{display:inline-flex; align-items:center; gap:8px}
 #leafletMap{ position: relative; } /* ensures empty overlay anchors correctly */
 
   </style>
 
-<style>
-/* === Left Sidebar Layout (drop‑in) ====================================== */
-@media (min-width: 1024px) {
-  html, body { height: 100%; }
-  body {
-    display: grid;
-    grid-template-columns: 260px minmax(0, 1fr);
-    grid-template-areas: "sidebar content";
-    gap: 0;
-    min-height: 100vh;
-  }
-  header[role="banner"] {
-    grid-area: sidebar;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow: auto;
-    padding: 16px;
-    border-right: 1px solid var(--border);
-    border-bottom: 0; /* was topbar */
-    background: var(--panel);
-    box-shadow: none;
-  }
-  /* Title */
-  #appTitle { font-size: 18px; line-height: 1.2; margin: 0 0 12px 0; }
-
-  /* Search + scope become full-width blocks */
-  .search-wrap, .scope { width: 100%; }
-  .search-wrap { margin: 8px 0; }
-
-  /* Vertical nav */
-  nav[role="navigation"] {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin: 8px 0 12px 0;
-  }
-  nav .tab-btn {
-    width: 100%;
-    justify-content: flex-start;
-    text-align: left;
-  }
-
-  /* Accent + theme controls pinned to bottom */
-  .sidebar-spacer { flex: 1 1 auto; }
-  #themeToggle { margin-top: 8px; }
-
-  /* Main content */
-  main#main {
-    grid-area: content;
-    padding: 20px clamp(16px, 2.2vw, 28px);
-    max-width: none;
-  }
-}
-
-/* Collapsed sidebar (optional) */
-@media (min-width: 1024px) {
-  body.sidebar-collapsed { grid-template-columns: 72px minmax(0,1fr); }
-  body.sidebar-collapsed header[role="banner"] { padding: 12px 8px; }
-  body.sidebar-collapsed #appTitle, 
-  body.sidebar-collapsed .search-wrap,
-  body.sidebar-collapsed .scope,
-  body.sidebar-collapsed .color-chip .label,
-  body.sidebar-collapsed #themeLabel { display: none !important; }
-  body.sidebar-collapsed nav .tab-btn { justify-content: center; }
-}
-
-/* Subtle polish */
-nav .tab-btn[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--accent-3); }
-</style>
 </head>
 <body>
 <a class="skip" href="#main" data-testid="skip-link">Skip to content</a>
@@ -614,6 +650,14 @@ nav .tab-btn[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--accent-3);
   <symbol id="ic-download" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4V7h3l-5-5z"/></symbol>
   <symbol id="ic-upload" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM7 10h3v6h4v-6h3l-5-5-5 5z"/></symbol>
   <symbol id="ic-refresh" viewBox="0 0 24 24"><path d="M17.65 6.35A7.95 7.95 0 0012 4V1L7 6l5 5V7a5 5 0 11-4.9 6H5a7 7 0 107.65-6.65z"/></symbol>
+  <symbol id="ic-menu" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></symbol>
+  <symbol id="ic-dashboard" viewBox="0 0 24 24"><path d="M3 3h9v7H3V3zm11 0h7v5h-7V3zm0 7h7v11h-7V10zm-11 3h9v8H3v-8z"/></symbol>
+  <symbol id="ic-analytics" viewBox="0 0 24 24"><path d="M5 19h3V10H5v9zm5 0h3V5h-3v14zm5 0h3v-6h-3v6z"/></symbol>
+  <symbol id="ic-feedback" viewBox="0 0 24 24"><path d="M4 4h16v12H7l-3 3V4zm4 5v2h8V9H8z"/></symbol>
+  <symbol id="ic-timeline" viewBox="0 0 24 24"><path d="M4 11h6V6h4v5h6v2h-6v5h-4v-5H4z"/></symbol>
+  <symbol id="ic-budget" viewBox="0 0 24 24"><path d="M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z"/></symbol>
+  <symbol id="ic-settings" viewBox="0 0 24 24"><path d="M19.14 12.94a7 7 0 000-1.88l2.01-1.57-1.92-3.32-2.38.5a7.1 7.1 0 00-1.63-.95L14.9 3h-3.8l-.32 2.72a7.1 7.1 0 00-1.63.95l-2.38-.5-1.92 3.32 2.01 1.57a7 7 0 000 1.88l-2.01 1.57 1.92 3.32 2.38-.5c.5.4 1.05.73 1.63.95L11.1 21h3.8l.32-2.72c.58-.22 1.13-.55 1.63-.95l2.38.5 1.92-3.32-2.01-1.57zM13 12a1 1 0 11-2 0 1 1 0 012 0z"/></symbol>
+  <symbol id="ic-chevron-down" viewBox="0 0 24 24"><path d="M7 9l5 5 5-5H7z"/></symbol>
   <symbol id="ic-x" viewBox="0 0 24 24"><path d="M6.225 4.811L12 10.586l5.775-5.775 1.414 1.414L13.414 12l5.775 5.775-1.414 1.414L12 13.414l-5.775 5.775-1.414-1.414L10.586 12 4.811 6.225z"/></symbol>
   <symbol id="ic-funnel" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4L3 5z"/></symbol>
   <symbol id="ic-pin" viewBox="0 0 24 24"><path d="M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></symbol>
@@ -623,46 +667,129 @@ nav .tab-btn[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--accent-3);
   <symbol id="ic-users" viewBox="0 0 24 24"><path d="M16 11a4 4 0 10-4-4 4 4 0 004 4zm-8 0a4 4 0 10-4-4 4 4 0 004 4zm0 2c-2.67 0-8 1.34-8 4v3h12v-3c0-2.66-5.33-4-8-4zm8 0c-.84 0-1.73.08-2.63.24 1.74 1 2.63 2.34 2.63 3.76v3h8v-3c0-2.66-5.33-4-8-4z"/></symbol>
   <symbol id="ic-briefcase" viewBox="0 0 24 24"><path d="M10 4h4l1 2h5v14H4V6h5l1-2zm-4 4v10h12V8H6zm4 0h4V6h-4v2z"/></symbol>
   <symbol id="ic-link" viewBox="0 0 24 24"><path d="M3.9 12a5.1 5.1 0 015.1-5.1H12v2.1H9a3 3 0 100 6h3v2.1H9a5.1 5.1 0 01-5.1-5.1zm7.1-3h3a5.1 5.1 0 110 10.2H13v-2.1h1a3 3 0 100-6h-3V9z"/></symbol>
+  <symbol id="ic-zoom" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6 6 0 1016 10a6 6 0 00-.5 2.5l.27.28v.79L20.5 19 19 20.5 14.5 16v-.79zm-5.5 0a4 4 0 114-4 4 4 0 01-4 4z"/></symbol>
 </svg>
 
-<header role="banner" aria-label="Application header">
-<h1 id="appTitle">Event Planner Pro</h1>
-<div class="search-wrap no-print" aria-label="Global event search">
-  <input id="globalSearch" placeholder="Search events…" aria-label="Search events (global)" autocomplete="off" />
-  <div id="globalSearchList" role="listbox" style="display:none"></div>
-</div>
-  <nav role="navigation" aria-label="Primary">
-    <button class="tab-btn" data-testid="nav-dashboard" data-route="#/dashboard" aria-current="page">Dashboard</button>
-    <button class="tab-btn" data-testid="nav-analysis" data-route="#/analysis">Analysis</button>
-    <button class="tab-btn" data-testid="nav-events" data-route="#/events">Events</button>
-    <button class="tab-btn" data-testid="nav-post" data-route="#/post">Post-Event</button>
-    <button class="tab-btn" data-testid="nav-timeline" data-route="#/timeline">Timeline</button>
-    <button class="tab-btn" data-testid="nav-vendors" data-route="#/vendors">Vendors</button>
-    <button class="tab-btn" data-testid="nav-budget" data-route="#/budget">Budget</button>
-    <button class="tab-btn" data-testid="nav-tasks" data-route="#/tasks">Tasks</button>
-    <button class="tab-btn" data-testid="nav-map" data-route="#/map" aria-controls="map">Map</button>
-    <button class="tab-btn" data-testid="nav-settings" data-route="#/settings">Settings</button>
-  </nav>
-<div class="scope no-print">
-  <div class="small muted" aria-hidden="true">Scope</div>
-  <select id="scopeEvent" title="Data scope (All vs specific event)">
-    <option value="">All events</option>
-  </select>
-</div>
-<!-- Accent color picker (small chip + hidden input) -->
-<button id="accentBtn" class="color-chip no-print" type="button"
-          title="Pick accent color" aria-label="Pick accent color">
-    <span class="chip-swatch" aria-hidden="true"></span>
-    <input id="accentPicker" type="color" value="#7c3aed"
-           class="color-hit-target" aria-label="Pick accent color">
-  </button>
-  <button id="themeToggle" class="theme-toggle" title="Toggle theme" aria-pressed="false" data-testid="theme-toggle">
-    <svg class="icon" id="themeIcon" aria-hidden="true"><use href="#ic-sun"></use></svg>
-    <span id="themeLabel" class="label">Light</span>
-  </button>
-</header>
-
-<main id="main" tabindex="-1">
+<div class="app-shell">
+  <header class="app-header" role="banner" aria-label="Application header">
+    <div class="header-brand">
+      <button id="sidebarToggle" class="icon-button no-print" type="button" aria-pressed="false" aria-label="Toggle navigation">
+        <svg class="icon" aria-hidden="true"><use href="#ic-menu"></use></svg>
+        <span class="label">Menu</span>
+      </button>
+      <h1 id="appTitle" class="brand-title">Event Planner Pro</h1>
+    </div>
+    <div class="header-search no-print" aria-label="Global event search">
+      <div class="search-wrap">
+        <input id="globalSearch" placeholder="Search events…" aria-label="Search events (global)" autocomplete="off" />
+        <div id="globalSearchList" role="listbox" style="display:none"></div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="accentBtn" class="color-chip no-print" type="button" title="Pick accent color" aria-label="Pick accent color">
+        <span class="chip-swatch" aria-hidden="true"></span>
+        <input id="accentPicker" type="color" value="#7c3aed" class="color-hit-target" aria-label="Pick accent color">
+      </button>
+      <button id="themeToggle" class="theme-toggle no-print" title="Toggle theme" aria-pressed="false" data-testid="theme-toggle">
+        <svg class="icon" id="themeIcon" aria-hidden="true"><use href="#ic-sun"></use></svg>
+        <span id="themeLabel" class="label">Light</span>
+      </button>
+      <div class="zoom-menu-wrap no-print">
+        <button id="zoomToggle" class="zoom-toggle" type="button" aria-haspopup="true" aria-expanded="false" title="Adjust content zoom">
+          <svg class="icon" aria-hidden="true"><use href="#ic-zoom"></use></svg>
+          <span class="label">Zoom</span>
+        </button>
+        <div id="zoomPanel" class="zoom-panel" role="group" aria-label="Zoom controls" hidden>
+          <div class="zoom-row">
+            <label for="globalZoomSlider">General content zoom <span id="globalZoomValue" class="zoom-value">100%</span></label>
+            <input id="globalZoomSlider" type="range" min="60" max="140" step="5" value="100" aria-valuemin="60" aria-valuemax="140" aria-valuenow="100">
+          </div>
+          <div class="zoom-row">
+            <label for="tabZoomSlider">Current tab zoom <span id="tabZoomValue" class="zoom-value">100%</span></label>
+            <input id="tabZoomSlider" type="range" min="60" max="140" step="5" value="100" aria-valuemin="60" aria-valuemax="140" aria-valuenow="100">
+          </div>
+          <p class="zoom-hint small muted">Adjust overall density without affecting the header or sidebar. Tab zoom layers on top for individual layouts.</p>
+        </div>
+      </div>
+      <div class="user-menu-wrap no-print">
+        <button class="user-menu" type="button" aria-haspopup="menu" aria-expanded="false">
+          <span class="avatar" aria-hidden="true">AM</span>
+          <span class="user-name">Alex Morgan</span>
+          <svg class="icon" aria-hidden="true"><use href="#ic-chevron-down"></use></svg>
+        </button>
+        <div id="userMenuPanel" class="user-menu-panel" role="menu" aria-label="Profile menu" hidden>
+          <div class="profile-menu-header">
+            <span class="profile-menu-title">Switch profile</span>
+            <span id="profileMenuHint" class="profile-hint"></span>
+          </div>
+          <div id="profileMenuList" class="profile-menu-list" role="group" aria-label="Profiles"></div>
+          <button id="profileAddToggle" class="profile-add-toggle" type="button" aria-expanded="false">+ Add profile</button>
+          <form id="profileQuickForm" class="profile-form" autocomplete="off" hidden>
+            <label><span>Name*</span><input type="text" name="name" required></label>
+            <label><span>Email</span><input type="email" name="email" placeholder="name@company.com"></label>
+            <label><span>Assignment label</span><input type="text" name="assignment" placeholder="Matches task assignee"><span class="profile-hint">Used to match tasks or owners.</span></label>
+            <label><span>Role</span><select name="role"><option value="planner">Planner</option><option value="admin">Admin</option></select></label>
+            <div class="row" style="justify-content:flex-end;gap:8px;">
+              <button type="button" class="ghost" id="profileCancel">Cancel</button>
+              <button type="submit" class="primary">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div class="app-shell-body">
+    <aside class="app-sidebar no-print" aria-label="Primary navigation">
+      <div class="sidebar-header scope no-print">
+        <label for="scopeEvent" class="muted small">Scope</label>
+        <select id="scopeEvent" title="Data scope (All vs specific event)">
+          <option value="">All events</option>
+        </select>
+      </div>
+      <nav role="navigation" aria-label="Primary">
+        <button class="tab-btn" data-testid="nav-dashboard" data-route="#/dashboard" aria-current="page">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-dashboard"></use></svg></span>
+          <span class="tab-label">Dashboard</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-analysis" data-route="#/analysis">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-analytics"></use></svg></span>
+          <span class="tab-label">Analysis</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-events" data-route="#/events">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-calendar"></use></svg></span>
+          <span class="tab-label">Events</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-post" data-route="#/post">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-feedback"></use></svg></span>
+          <span class="tab-label">Post-Event</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-timeline" data-route="#/timeline">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-timeline"></use></svg></span>
+          <span class="tab-label">Timeline</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-vendors" data-route="#/vendors">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-users"></use></svg></span>
+          <span class="tab-label">Vendors</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-budget" data-route="#/budget">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-budget"></use></svg></span>
+          <span class="tab-label">Budget</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-tasks" data-route="#/tasks">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-check"></use></svg></span>
+          <span class="tab-label">Tasks</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-map" data-route="#/map" aria-controls="map">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-map"></use></svg></span>
+          <span class="tab-label">Map</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-settings" data-route="#/settings">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-settings"></use></svg></span>
+          <span class="tab-label">Settings</span>
+        </button>
+      </nav>
+    </aside>
+    <main id="main" tabindex="-1">
   <!-- DASHBOARD -->
   <section id="dashboard" class="tab card" role="region" aria-labelledby="h-dashboard">
     <h2 id="h-dashboard" class="visually-hidden" style="position:absolute;left:-9999px">Dashboard</h2>
@@ -1040,8 +1167,15 @@ nav .tab-btn[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--accent-3);
     <div class="small">Data persists in your browser (<code>localStorage</code>). Use Export/Import to share or commit JSON.</div>
     <div class="hr"></div>
     <div class="small muted">Keyboard: <kbd>g</kbd> then <kbd>d</kbd>/<kbd>e</kbd>/<kbd>t</kbd>/<kbd>v</kbd>/<kbd>b</kbd>/<kbd>m</kbd>/<kbd>s</kbd> to go to Dashboard/Events/Tasks/Vendors/Budget/Map/Settings.</div>
+    <div class="hr"></div>
+    <h3>User Profiles</h3>
+    <div class="small muted">Profiles control visibility. Admins see all data; planners only see items assigned to them.</div>
+    <div id="profileSettings"></div>
   </section>
-</main>
+
+    </main>
+  </div>
+</div>
 
 <script>
 /* ---------- Utils ---------- */
@@ -1062,6 +1196,180 @@ const diffInDays=(a,b)=>{const da=parseYMD(a), db=parseYMD(b); if(!da||!db) retu
 const uid=(p="id")=>`${p}_${Math.random().toString(36).slice(2,9)}`;
 const fragment=()=>document.createDocumentFragment();
 const escapeAttr=v=>String(v??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+/* ---------- Profiles & Access Control ---------- */
+const PROFILE_VIEW_KEY="epp_profile_view_v1";
+
+function normalizeProfile(input){
+  const profile={...input};
+  profile.id=profile.id||uid("usr");
+  profile.name=(profile.name||"Untitled Profile").trim()||"Untitled Profile";
+  profile.email=(profile.email||"").trim();
+  profile.role=profile.role==="admin"?"admin":"planner";
+  profile.assignmentLabel=(profile.assignmentLabel||profile.alias||profile.taskLabel||"").trim();
+  if(!profile.assignmentLabel && profile.name){
+    const first=profile.name.split(/\s+/).find(Boolean);
+    if(first) profile.assignmentLabel=first;
+  }
+  const tokens=new Set();
+  const push=value=>{
+    if(!value) return;
+    const normalized=String(value).trim().toLowerCase();
+    if(normalized) tokens.add(normalized);
+  };
+  push(profile.name);
+  profile.name.split(/\s+/).forEach(push);
+  push(profile.email);
+  push(profile.assignmentLabel);
+  if(Array.isArray(profile.keywords)) profile.keywords.forEach(push);
+  profile.keywords=Array.from(tokens);
+  return profile;
+}
+
+function buildDefaultProfiles(){
+  const defaults=[
+    { name:"Alex Morgan", email:"alex@yourorg.com", role:"admin", assignmentLabel:"Alex" },
+    { name:"Laura Martínez", email:"laura@yourorg.com", role:"planner", assignmentLabel:"Laura" },
+    { name:"Diego García", email:"diego@yourorg.com", role:"planner", assignmentLabel:"Diego" },
+    { name:"Ana Fernández", email:"ana@yourorg.com", role:"planner", assignmentLabel:"Ana" },
+    { name:"María López", email:"maria@yourorg.com", role:"planner", assignmentLabel:"Maria" },
+    { name:"Carlos Ramírez", email:"carlos@yourorg.com", role:"planner", assignmentLabel:"Carlos" }
+  ];
+  return defaults.map(normalizeProfile);
+}
+
+function ensureProfileStore(){
+  if(!store.data) store.data={};
+  if(!Array.isArray(store.data.profiles)) store.data.profiles=[];
+  let updated=false;
+  store.data.profiles=store.data.profiles.map(p=>{
+    const normalized=normalizeProfile(p);
+    const originalKeywords=Array.isArray(p.keywords)?p.keywords.map(k=>String(k)).sort().join('|'):'';
+    const normalizedKeywords=normalized.keywords.map(k=>String(k)).sort().join('|');
+    if(
+      normalized.id!==p.id ||
+      normalized.name!==p.name ||
+      normalized.email!==p.email ||
+      normalized.role!==p.role ||
+      normalized.assignmentLabel!==p.assignmentLabel ||
+      originalKeywords!==normalizedKeywords
+    ){
+      updated=true;
+    }
+    return normalized;
+  });
+  if(!store.data.profiles.length){
+    store.data.profiles=buildDefaultProfiles();
+    updated=true;
+  }
+  if(!store.data.profiles.some(p=>p.role==="admin")){
+    store.data.profiles.unshift(normalizeProfile({ name:"Alex Morgan", email:"alex@yourorg.com", role:"admin", assignmentLabel:"Alex" }));
+    updated=true;
+  }
+  if(updated) store.save();
+  return store.data.profiles;
+}
+
+function profileInitials(name){
+  const parts=(name||"").split(/\s+/).filter(Boolean);
+  if(!parts.length) return "US";
+  return parts.slice(0,2).map(part=>part[0].toUpperCase()).join("");
+}
+
+function profileKeySet(profile){
+  const keys=new Set();
+  if(!profile) return keys;
+  const push=value=>{
+    if(!value) return;
+    const normalized=String(value).trim().toLowerCase();
+    if(normalized) keys.add(normalized);
+  };
+  push(profile.name);
+  (profile.name||"").split(/\s+/).forEach(push);
+  push(profile.email);
+  push(profile.assignmentLabel);
+  if(Array.isArray(profile.keywords)) profile.keywords.forEach(push);
+  return keys;
+}
+
+function taskVisibleToProfile(task, profile, keyCache){
+  if(!task) return false;
+  if(!profile || profile.role==="admin") return true;
+  const keys=keyCache || profileKeySet(profile);
+  if(!(keys && keys.size)) return false;
+  const assigned=(task.assignedTo||"").toString().trim().toLowerCase();
+  if(!assigned) return false;
+  if(keys.has(assigned)) return true;
+  const parts=assigned.split(/[\s,\/]+/).filter(Boolean);
+  return parts.some(part=>keys.has(part));
+}
+
+function accessibleEvents(profileOverride){
+  const profile=profileOverride || getCurrentProfile();
+  const events=Array.isArray(store.data.events)?store.data.events.slice():[];
+  if(!profile || profile.role==="admin") return events;
+  const keys=profileKeySet(profile);
+  if(!keys.size) return [];
+  const assignedEventIds=new Set();
+  (store.data.tasks||[]).forEach(task=>{
+    if(!task || !task.eventId) return;
+    const assigned=(task.assignedTo||"").trim().toLowerCase();
+    if(assigned && keys.has(assigned)){
+      assignedEventIds.add(task.eventId);
+    }
+  });
+  return events.filter(ev=>{
+    if(!ev) return false;
+    const owner=(ev.owner||"").trim().toLowerCase();
+    if(owner && keys.has(owner)) return true;
+    if(assignedEventIds.has(ev.id)) return true;
+    return false;
+  });
+}
+
+function saveProfile(input){
+  const normalized=normalizeProfile(input);
+  const profiles=ensureProfileStore();
+  const idx=profiles.findIndex(p=>p.id===normalized.id);
+  if(idx>=0) profiles[idx]=normalized; else profiles.push(normalized);
+  store.save();
+  return normalized;
+}
+
+function getCurrentProfile(){
+  const profiles=ensureProfileStore();
+  let id=state.currentProfileId || localStorage.getItem(PROFILE_VIEW_KEY);
+  let profile=profiles.find(p=>p.id===id);
+  if(!profile){
+    profile=profiles.find(p=>p.role==="admin") || profiles[0] || null;
+  }
+  if(profile){
+    state.currentProfileId=profile.id;
+    localStorage.setItem(PROFILE_VIEW_KEY, profile.id);
+  }
+  return profile;
+}
+
+function applyProfileConstraints(profile){
+  const accessibleIds=new Set(accessibleEvents(profile).map(e=>e.id));
+  if(state.filters.eventId && !accessibleIds.has(state.filters.eventId)){
+    state.filters.eventId="";
+    const scopeSel=qs("#scopeEvent"); if(scopeSel) scopeSel.value="";
+  }
+}
+
+function setCurrentProfile(id){
+  const profiles=ensureProfileStore();
+  const profile=profiles.find(p=>p.id===id);
+  if(!profile) return;
+  state.currentProfileId=profile.id;
+  localStorage.setItem(PROFILE_VIEW_KEY, profile.id);
+  applyProfileConstraints(profile);
+  state.profileFormOpen=false;
+  reflectProfileUI();
+  renderAll();
+  renderProfileMenu();
+}
 
 /* ---------- Theme ---------- */
 const THEME_KEY="epp_theme";
@@ -1367,6 +1675,12 @@ const state={
   filters:{ search:"", type:"", status:"", from:"", to:"", eventId:"" },
   currentRoute:"#/dashboard",
   currentTab:"dashboard",
+  currentProfileId:null,
+  profileFormOpen:false,
+  zoomPanelOpen:false,
+  globalZoom:1,
+  tabZooms:{},
+  accessibleEventIds:new Set(),
   addrPick:null,
   poiAddrPick:null,
   activeKPI:"upcoming",
@@ -1377,6 +1691,11 @@ const state={
 };
 let eventAddrAuto=null;
 let poiAddrAuto=null;
+const GLOBAL_ZOOM_KEY="epp_zoom_global_v1";
+const TAB_ZOOM_KEY="epp_zoom_tabs_v1";
+const ZOOM_MIN=0.6;
+const ZOOM_MAX=1.4;
+const SUPPORTS_CSS_ZOOM='zoom' in document.body.style;
 /* ---------- Router (hash) ---------- */
 const ROUTES=["#/dashboard","#/analysis","#/events","#/timeline","#/vendors","#/budget","#/tasks","#/map","#/settings","#/post"];
 function navigate(hash){
@@ -1395,6 +1714,8 @@ function navigate(hash){
 
   renderAll();
   if(id==="map") setTimeout(()=>safe(renderMap),50);
+  applyZoomForTab(id);
+  syncZoomControls();
 }
 window.addEventListener("hashchange",()=>navigate(location.hash||"#/dashboard"));
 qsa('nav .tab-btn').forEach(btn=>btn.addEventListener("click",()=>navigate(btn.getAttribute("data-route"))));
@@ -1408,10 +1729,10 @@ qs("#scopeEvent")?.addEventListener("change", (e)=>{
 
 /* ---------- Store ---------- */
 const LS_KEY="epp_data_v1";
-const store={data:{events:[],tasks:[],notes:[],timeline:[],vendors:[],budget:[],pois:[]},
+const store={data:{events:[],tasks:[],notes:[],timeline:[],vendors:[],budget:[],pois:[],profiles:[]},
   load(){try{const raw=localStorage.getItem(LS_KEY); if(raw) this.data=JSON.parse(raw)}catch(e){console.error(e)}},
   save(){localStorage.setItem(LS_KEY,JSON.stringify(this.data))},
-  reset(){this.data={events:[],tasks:[],notes:[],timeline:[],vendors:[],budget:[],pois:[]}; this.save()},
+  reset(){this.data={events:[],tasks:[],notes:[],timeline:[],vendors:[],budget:[],pois:[],profiles:[]}; this.save()},
   upsert(col,obj){if(!obj.id){obj.id=uid(col.slice(0,3))} const a=this.data[col], i=a.findIndex(x=>x.id===obj.id); if(i>=0)a[i]=obj; else a.push(obj); this.save(); return obj.id},
   remove(col,id){this.data[col]=this.data[col].filter(x=>x.id!==id); this.save()}
 };
@@ -1446,7 +1767,7 @@ function seedDemo(){
     { id:uid("poi"), label:"Hotel Centro", type:"Hotel", lat:19.434, lon:-99.14, address:"Hotel Centro Histórico, Ciudad de México", eventId:ev[0].id },
     { id:uid("poi"), label:"Parking P1", type:"Parking", lat:19.431, lon:-99.129, address:"Estacionamiento Pino Suárez, Ciudad de México", eventId:ev[0].id }
   ];
-  store.data={events:ev,tasks,notes:[],timeline,vendors,budget,pois};
+  store.data={events:ev,tasks,notes:[],timeline,vendors,budget,pois,profiles:buildDefaultProfiles()};
   store.save();
 }
 
@@ -1476,9 +1797,189 @@ qs("#btnClearFilters")?.addEventListener("click", ()=>{
   if (state.currentTab === "map") safe(renderMap);
 });
 
+/* ---------- Zoom Controls ---------- */
+function clampZoom(value){
+  if(!Number.isFinite(value)) return 1;
+  if(value < ZOOM_MIN) return ZOOM_MIN;
+  if(value > ZOOM_MAX) return ZOOM_MAX;
+  return value;
+}
+
+function persistGlobalZoom(){
+  try{ localStorage.setItem(GLOBAL_ZOOM_KEY, String(state.globalZoom)); }
+  catch(err){ console.error(err); }
+}
+
+function persistTabZooms(){
+  try{
+    const payload={};
+    Object.entries(state.tabZooms||{}).forEach(([tab,val])=>{
+      const num=clampZoom(Number(val));
+      if(Math.abs(num-1)>0.001){
+        payload[tab]=Number(num.toFixed(3));
+      }
+    });
+    localStorage.setItem(TAB_ZOOM_KEY, JSON.stringify(payload));
+  }catch(err){ console.error(err); }
+}
+
+function restoreZoomState(){
+  state.globalZoom=1;
+  state.tabZooms={};
+  try{
+    const stored=localStorage.getItem(GLOBAL_ZOOM_KEY);
+    if(stored!==null){
+      const parsed=clampZoom(parseFloat(stored));
+      if(Number.isFinite(parsed)) state.globalZoom=parsed;
+    }
+  }catch(err){ console.error(err); }
+  try{
+    const raw=localStorage.getItem(TAB_ZOOM_KEY);
+    if(raw){
+      const parsed=JSON.parse(raw);
+      if(parsed && typeof parsed==="object"){
+        Object.entries(parsed).forEach(([tab,val])=>{
+          const num=clampZoom(parseFloat(val));
+          if(Number.isFinite(num) && Math.abs(num-1)>0.001){
+            state.tabZooms[tab]=num;
+          }
+        });
+      }
+    }
+  }catch(err){ console.error(err); }
+}
+
+function applyZoomForTab(tabId){
+  if(!tabId) return;
+  const section=document.getElementById(tabId);
+  if(!section) return;
+  const tabZoom=clampZoom(state.tabZooms?.[tabId] ?? 1);
+  const effective=clampZoom(tabZoom * state.globalZoom);
+  if(SUPPORTS_CSS_ZOOM){
+    section.style.zoom=String(effective);
+    section.style.transform="";
+    section.style.transformOrigin="";
+    section.style.width="";
+    section.style.maxWidth="";
+  }else{
+    section.style.zoom="";
+    section.style.transform=effective===1?"":`scale(${effective})`;
+    section.style.transformOrigin="top left";
+    section.style.width=effective===1?"":`${(100/effective).toFixed(4)}%`;
+    section.style.maxWidth="";
+  }
+  if(effective===1){
+    section.removeAttribute('data-zoom');
+  }else{
+    section.setAttribute('data-zoom', effective.toFixed(2));
+  }
+}
+
+function applyAllTabZooms(){
+  qsa('main .tab').forEach(section=>{
+    if(section?.id){ applyZoomForTab(section.id); }
+  });
+}
+
+function syncZoomControls(){
+  const globalSlider=qs('#globalZoomSlider');
+  const globalValue=qs('#globalZoomValue');
+  const tabSlider=qs('#tabZoomSlider');
+  const tabValue=qs('#tabZoomValue');
+  const globalPercent=Math.round(clampZoom(state.globalZoom)*100);
+  if(globalSlider){
+    globalSlider.value=String(globalPercent);
+    globalSlider.setAttribute('aria-valuenow', String(globalPercent));
+  }
+  if(globalValue) globalValue.textContent=`${globalPercent}%`;
+  const currentTabZoom=clampZoom(state.tabZooms?.[state.currentTab] ?? 1);
+  const tabPercent=Math.round(currentTabZoom*100);
+  if(tabSlider){
+    tabSlider.disabled=!state.currentTab;
+    tabSlider.value=String(tabPercent);
+    tabSlider.setAttribute('aria-valuenow', String(tabPercent));
+  }
+  if(tabValue) tabValue.textContent=`${tabPercent}%`;
+}
+
+function handleGlobalZoomInput(event){
+  const value=Number(event.target.value);
+  const factor=clampZoom(value/100);
+  state.globalZoom=factor;
+  persistGlobalZoom();
+  applyAllTabZooms();
+  syncZoomControls();
+}
+
+function handleTabZoomInput(event){
+  const value=Number(event.target.value);
+  const factor=clampZoom(value/100);
+  const tab=state.currentTab;
+  if(!tab) return;
+  if(Math.abs(factor-1)<0.001){
+    delete state.tabZooms[tab];
+  }else{
+    state.tabZooms[tab]=factor;
+  }
+  persistTabZooms();
+  applyZoomForTab(tab);
+  syncZoomControls();
+}
+
+function toggleZoomPanel(force){
+  const wrap=qs('.zoom-menu-wrap');
+  const panel=qs('#zoomPanel');
+  const button=qs('#zoomToggle');
+  if(!wrap || !panel || !button){
+    if(force===false) state.zoomPanelOpen=false;
+    return;
+  }
+  const shouldOpen=typeof force==='boolean'?force:!state.zoomPanelOpen;
+  state.zoomPanelOpen=shouldOpen;
+  wrap.classList.toggle('open', shouldOpen);
+  panel.hidden=!shouldOpen;
+  button.setAttribute('aria-expanded', shouldOpen?'true':'false');
+  if(shouldOpen){
+    syncZoomControls();
+  }
+}
+
+document.addEventListener('click',(event)=>{
+  if(!state.zoomPanelOpen) return;
+  const wrap=qs('.zoom-menu-wrap');
+  if(wrap && !wrap.contains(event.target)){ toggleZoomPanel(false); }
+});
+
+document.addEventListener('keydown',(event)=>{
+  if(event.key==='Escape' && state.zoomPanelOpen){ toggleZoomPanel(false); }
+});
+
+function initZoomControls(){
+  if(initZoomControls._ready) return;
+  const toggle=qs('#zoomToggle');
+  const globalSlider=qs('#globalZoomSlider');
+  const tabSlider=qs('#tabZoomSlider');
+  if(!toggle || !globalSlider || !tabSlider) return;
+  toggle.addEventListener('click',()=>{
+    const userWrap=qs('.user-menu-wrap');
+    if(userWrap?.classList.contains('open')) toggleUserMenu(false);
+    toggleZoomPanel();
+  });
+  globalSlider.addEventListener('input',handleGlobalZoomInput);
+  tabSlider.addEventListener('input',handleTabZoomInput);
+  initZoomControls._ready=true;
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded', initZoomControls);
+}else{
+  initZoomControls();
+}
+
 function filteredEvents(){
   const f=state.filters;
-  return store.data.events
+  const base=accessibleEvents();
+  return base
     .filter(e=>{
       if(f.type && e.eventType!==f.type) return false;
       if(f.status && e.status!==f.status) return false;
@@ -1496,14 +1997,20 @@ function filteredEvents(){
 }
 
 /* ---------- Data Graph (cross-linked view) ---------- */
-function buildDataGraph({ scopeIds=new Set(), scopedEvents=[] }={}){
-  const events=Array.isArray(store.data.events)?store.data.events:[];
-  const eventsById=new Map(events.map(ev=>[ev.id,ev]));
+function buildDataGraph({ scopeIds=new Set(), scopedEvents=[], allowedEvents=[], profile=null }={}){
+  const eventsInput=(Array.isArray(allowedEvents) && allowedEvents.length)
+    ? allowedEvents.filter(Boolean)
+    : (Array.isArray(store.data.events)?store.data.events.filter(Boolean):[]);
+  const eventsById=new Map(eventsInput.map(ev=>[ev.id,ev]));
+  const allowedSet=new Set(eventsById.keys());
   const contexts=new Map();
   const orphans={ tasks:[], timeline:[], budget:[], notes:[], vendorLinks:[], pois:[] };
   const unlinkedVendors=[];
+  const isAdminView=!profile || profile.role==="admin";
+  const profileKeys=isAdminView?null:profileKeySet(profile);
   const ensureContext=(eventId)=>{
     if(!eventId) return null;
+    if(allowedSet.size && !allowedSet.has(eventId)) return null;
     if(!contexts.has(eventId)){
       const ctxEvent=eventsById.get(eventId)||null;
       contexts.set(eventId,{
@@ -1525,10 +2032,10 @@ function buildDataGraph({ scopeIds=new Set(), scopedEvents=[] }={}){
     return contexts.get(eventId);
   };
 
-  events.forEach(ev=>ensureContext(ev.id));
+  eventsInput.forEach(ev=>ensureContext(ev.id));
 
   const scopeSet=new Set(scopeIds||[]);
-  const scopedList=Array.isArray(scopedEvents)?scopedEvents.slice():events.slice();
+  const scopedList=Array.isArray(scopedEvents)?scopedEvents.slice():eventsInput.slice();
   const today=todayYMD();
   const nowIso=new Date().toISOString();
 
@@ -1539,10 +2046,16 @@ function buildDataGraph({ scopeIds=new Set(), scopedEvents=[] }={}){
 
   (store.data.tasks||[]).forEach(task=>{
     if(!task) return;
-    if(!task.eventId || !eventsById.has(task.eventId)){
-      orphans.tasks.push(task);
+    if(!task.eventId){
+      if(isAdminView) orphans.tasks.push(task);
       return;
     }
+    if(allowedSet.size && !allowedSet.has(task.eventId)) return;
+    if(!eventsById.has(task.eventId)){
+      if(isAdminView) orphans.tasks.push(task);
+      return;
+    }
+    if(!isAdminView && !taskVisibleToProfile(task, profile, profileKeys)) return;
     const ctx=ensureContext(task.eventId);
     if(!ctx) return;
     ctx.tasks.push(task);
@@ -1587,8 +2100,13 @@ function buildDataGraph({ scopeIds=new Set(), scopedEvents=[] }={}){
 
   (store.data.timeline||[]).forEach(slot=>{
     if(!slot) return;
-    if(!slot.eventId || !eventsById.has(slot.eventId)){
-      orphans.timeline.push(slot);
+    if(!slot.eventId){
+      if(isAdminView) orphans.timeline.push(slot);
+      return;
+    }
+    if(allowedSet.size && !allowedSet.has(slot.eventId)) return;
+    if(!eventsById.has(slot.eventId)){
+      if(isAdminView) orphans.timeline.push(slot);
       return;
     }
     const ctx=ensureContext(slot.eventId);
@@ -1603,8 +2121,13 @@ function buildDataGraph({ scopeIds=new Set(), scopedEvents=[] }={}){
 
   (store.data.budget||[]).forEach(line=>{
     if(!line) return;
-    if(!line.eventId || !eventsById.has(line.eventId)){
-      orphans.budget.push(line);
+    if(!line.eventId){
+      if(isAdminView) orphans.budget.push(line);
+      return;
+    }
+    if(allowedSet.size && !allowedSet.has(line.eventId)) return;
+    if(!eventsById.has(line.eventId)){
+      if(isAdminView) orphans.budget.push(line);
       return;
     }
     const ctx=ensureContext(line.eventId);
@@ -1624,8 +2147,13 @@ function buildDataGraph({ scopeIds=new Set(), scopedEvents=[] }={}){
 
   (store.data.notes||[]).forEach(note=>{
     if(!note) return;
-    if(!note.eventId || !eventsById.has(note.eventId)){
-      orphans.notes.push(note);
+    if(!note.eventId){
+      if(isAdminView) orphans.notes.push(note);
+      return;
+    }
+    if(allowedSet.size && !allowedSet.has(note.eventId)) return;
+    if(!eventsById.has(note.eventId)){
+      if(isAdminView) orphans.notes.push(note);
       return;
     }
     const ctx=ensureContext(note.eventId);
@@ -1636,12 +2164,25 @@ function buildDataGraph({ scopeIds=new Set(), scopedEvents=[] }={}){
   const vendorAssignments=[];
   (store.data.vendors||[]).forEach(vendor=>{
     const assigned=Array.isArray(vendor.events)?vendor.events.filter(Boolean):[];
-    if(!assigned.length){
-      unlinkedVendors.push(vendor);
+    const visibleIds=allowedSet.size
+      ? assigned.filter(id=>allowedSet.has(id))
+      : (isAdminView ? assigned.slice() : []);
+    if(!visibleIds.length){
+      if(isAdminView && !assigned.length){
+        unlinkedVendors.push(vendor);
+      }
+      if(isAdminView){
+        assigned.forEach(eventId=>{
+          if(!eventsById.has(eventId)){
+            orphans.vendorLinks.push({ vendor, eventId });
+          }
+        });
+      }
+      return;
     }
-    assigned.forEach(eventId=>{
+    visibleIds.forEach(eventId=>{
       if(!eventsById.has(eventId)){
-        orphans.vendorLinks.push({ vendor, eventId });
+        if(isAdminView) orphans.vendorLinks.push({ vendor, eventId });
         return;
       }
       const ctx=ensureContext(eventId);
@@ -1653,8 +2194,13 @@ function buildDataGraph({ scopeIds=new Set(), scopedEvents=[] }={}){
 
   (store.data.pois||[]).forEach(poi=>{
     if(!poi) return;
-    if(!poi.eventId || !eventsById.has(poi.eventId)){
-      orphans.pois.push(poi);
+    if(!poi.eventId){
+      if(isAdminView) orphans.pois.push(poi);
+      return;
+    }
+    if(allowedSet.size && !allowedSet.has(poi.eventId)) return;
+    if(!eventsById.has(poi.eventId)){
+      if(isAdminView) orphans.pois.push(poi);
       return;
     }
     const ctx=ensureContext(poi.eventId);
@@ -1983,7 +2529,7 @@ setupKpiInteractions();
 function fillEventScope(){
   const sel = qs("#scopeEvent"); if(!sel) return;
   const keep = state.filters.eventId || "";
-  const evs = (store.data.events||[]).slice().sort((a,b)=>a.title.localeCompare(b.title));
+  const evs = accessibleEvents().slice().sort((a,b)=>(a.title||"").localeCompare(b.title||""));
   sel.innerHTML = `<option value="">All events</option>`;
   evs.forEach(e=>{
     const o = document.createElement("option");
@@ -1995,7 +2541,7 @@ function fillEventScope(){
 }
 
 function fillEventSelectors(){
-  const evsAll = store.data.events.slice().sort((a,b)=>a.title.localeCompare(b.title));
+  const evsAll = accessibleEvents().slice().sort((a,b)=>(a.title||"").localeCompare(b.title||""));
   const selects=["#tEvent","#sEvent","#bEvent"].map(q=>qs(q)).filter(Boolean);
   selects.forEach(sel=>{
     const keep=sel.value;
@@ -2555,7 +3101,7 @@ function renderAnalysis(){
 
   const predictions=[];
 
-  const eventsAll=(store.data.events||[]).filter(ev=>ev&&ev.eventDate);
+  const eventsAll=accessibleEvents().filter(ev=>ev&&ev.eventDate);
   if(eventsAll.length){
     const monthCounts=new Map();
     eventsAll.forEach(ev=>{
@@ -2670,23 +3216,35 @@ function renderEventsTable(){
     const metaLine=metaParts.length?metaParts.join(" · "):"Details TBD";
 
     const vendorNames=vendors.map(v=>v.name).filter(Boolean);
-    const vendorSummary=vendorNames.length
-      ? vendorNames.slice(0,2).map(name=>escapeAttr(name)).join(", ")+(vendorNames.length>2?"…":"")
+    const vendorSummaryText=vendorNames.length
+      ? vendorNames.slice(0,2).join(", ")+(vendorNames.length>2?"…":"")
       : "No vendors linked";
-    const budgetSummary=budgetMetrics.forecast
+    const budgetSummaryText=budgetMetrics.forecast
       ? `${fmtMoney(budgetMetrics.actual||0)} / ${fmtMoney(budgetMetrics.forecast||0)}`
       : "No budget lines";
-    const timelineSummary=nextSlot
-      ? `${(nextSlot.start?fmtDateTime(nextSlot.start):"Date TBD")} • ${escapeAttr(nextSlot.title||"Unnamed")}`
+    const timelineTitle=nextSlot?.title?nextSlot.title:"Unnamed";
+    const timelineSummaryText=nextSlot
+      ? `${(nextSlot.start?fmtDateTime(nextSlot.start):"Date TBD")} • ${timelineTitle}`
       : "No upcoming slots";
-    const poiSummary=pois.length?`${pois.length} POI${pois.length===1?"":"s"}`:"No POIs";
+    const poiSummaryText=pois.length?`${pois.length} POI${pois.length===1?"":"s"}`:"No POIs";
+
+    const connectionItems=[
+      { icon:"#ic-users", label:"Vendors", value:vendorSummaryText },
+      { icon:"#ic-briefcase", label:"Budget", value:budgetSummaryText },
+      { icon:"#ic-calendar", label:"Timeline", value:timelineSummaryText },
+      { icon:"#ic-pin", label:"POIs", value:poiSummaryText }
+    ];
 
     const connectionsHtml=`
-      <div class="event-connections">
-        <span><svg class="icon"><use href="#ic-users"></use></svg>${vendorSummary}</span>
-        <span><svg class="icon"><use href="#ic-briefcase"></use></svg>${budgetSummary}</span>
-        <span><svg class="icon"><use href="#ic-calendar"></use></svg>${timelineSummary}</span>
-        <span><svg class="icon"><use href="#ic-pin"></use></svg>${poiSummary}</span>
+      <div class="event-connections" role="list">
+        ${connectionItems.map(item=>`
+          <span class="event-connection-item" role="listitem">
+            <span class="event-connection-icon" aria-hidden="true"><svg class="icon"><use href="${item.icon}"></use></svg></span>
+            <span class="event-connection-text">
+              <span class="event-connection-label">${item.label}</span>
+              <span class="event-connection-value">${escapeAttr(item.value)}</span>
+            </span>
+          </span>`).join("")}
       </div>`;
 
     displayData.push({
@@ -2715,9 +3273,10 @@ function renderEventsTable(){
     const addressHtml=escapeAttr(e.address||"");
     const summaryText=escapeAttr(taskSummary);
     const metaHtml=escapeAttr(metaLine);
-    const ownerHtml=e.owner?`<div class="event-meta">Owner: ${escapeAttr(e.owner)}</div>`:"";
+    const ownerHtml=e.owner?`<span class="event-meta owner-meta">Owner: ${escapeAttr(e.owner)}</span>`:"";
     const titleHtml=escapeAttr(e.title||"Untitled Event");
     const statusText=escapeAttr(e.status||"");
+    const statusBadge=`<span class="status ${statusClass}"><span class="status-dot" aria-hidden="true"></span>${statusText}</span>`;
 
     const progressMarkup=`
       <div class="event-progress">
@@ -2726,6 +3285,8 @@ function renderEventsTable(){
           <div class="meter-fill" style="width:${percent}%"></div>
         </div>
       </div>`;
+
+    card.dataset.statusTheme=statusClass;
 
     if(isEditing){
       const typeOptionsList=["Wedding","Baptism","Party"]; if(e.eventType && !typeOptionsList.includes(e.eventType)) typeOptionsList.push(e.eventType);
@@ -2742,9 +3303,9 @@ function renderEventsTable(){
         <div class="event-card-header">
           <div class="event-card-title">
             <h4>Edit Event</h4>
-            <div class="event-meta">${titleHtml}</div>
+            <div class="event-meta-row"><span class="event-meta">${titleHtml}</span></div>
           </div>
-          <span class="status ${statusClass}">${statusText}</span>
+          ${statusBadge}
         </div>
         <form class="event-card-form" data-event-form="${escapeAttr(e.id)}" onsubmit="return false;">
           <div class="event-card-form-grid">
@@ -2770,10 +3331,9 @@ function renderEventsTable(){
         <div class="event-card-header">
           <div class="event-card-title">
             <h4>${titleHtml}</h4>
-            <div class="event-meta">${metaHtml}</div>
-            ${ownerHtml}
+            <div class="event-meta-row"><span class="event-meta">${metaHtml}</span>${ownerHtml}</div>
           </div>
-          <span class="status ${statusClass}">${statusText}</span>
+          ${statusBadge}
         </div>
         <div class="event-address">${addressHtml}</div>
         ${progressMarkup}
@@ -3065,9 +3625,13 @@ qs("#btnResetEvent")?.addEventListener("click", () => {
 });
 /* ---------- Render orchestrator ---------- */
 function renderAll(context){
+  const profile=getCurrentProfile();
+  const accessible=accessibleEvents(profile);
+  state.accessibleEventIds=new Set(accessible.map(e=>e.id));
+  applyProfileConstraints(profile);
   const scopedEvents=filteredEvents();
   const scopeIds=new Set(scopedEvents.map(e=>e.id));
-  state.graph=buildDataGraph({ scopeIds, scopedEvents });
+  state.graph=buildDataGraph({ scopeIds, scopedEvents, allowedEvents:accessible, profile });
   fillEventSelectors();
   fillEventScope();
   renderKPIs();
@@ -3080,14 +3644,182 @@ function renderAll(context){
   renderVendors();
   renderBudget();
   renderTimeline();
-  renderNotesTable();  
+  renderNotesTable();
+  renderProfileSettings();
   if((context||"") === "map"){ renderMap() }
 }
+
+function reflectProfileUI(){
+  const profile=getCurrentProfile();
+  const nameEl=qs('.user-menu .user-name');
+  const avatarEl=qs('.user-menu .avatar');
+  if(nameEl) nameEl.textContent=profile?profile.name:"Guest";
+  if(avatarEl) avatarEl.textContent=profile?profileInitials(profile.name):"--";
+}
+
+function resetProfileForm(){
+  const form=qs('#profileQuickForm');
+  if(!form) return;
+  form.reset();
+  const roleSel=form.querySelector('select[name="role"]');
+  if(roleSel) roleSel.value='planner';
+  state.profileFormOpen=false;
+  renderProfileMenu();
+}
+
+function renderProfileMenu(){
+  const list=qs('#profileMenuList');
+  if(list){
+    list.innerHTML="";
+    const profiles=ensureProfileStore().slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+    const current=getCurrentProfile();
+    profiles.forEach(profile=>{
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='profile-choice';
+      btn.dataset.profileId=profile.id;
+      btn.setAttribute('role','menuitemradio');
+      btn.setAttribute('aria-checked', profile.id===current?.id ? 'true' : 'false');
+      btn.innerHTML=`<span class="profile-choice-name">${escapeAttr(profile.name||'Unnamed')}</span><span class="profile-role">${profile.role==='admin'?'Admin':'Planner'}</span>`;
+      btn.addEventListener('click',()=>{
+        if(profile.id!==current?.id){
+          setCurrentProfile(profile.id);
+        }
+        toggleUserMenu(false);
+      });
+      list.appendChild(btn);
+    });
+  }
+  const hint=qs('#profileMenuHint');
+  const currentProfile=getCurrentProfile();
+  if(hint){
+    hint.textContent=currentProfile?.role==='admin'
+      ? 'Admins can view or add profiles.'
+      : 'Viewing your assigned work.';
+  }
+  const canManage=currentProfile?.role==='admin';
+  const addToggle=qs('#profileAddToggle');
+  if(addToggle){
+    addToggle.disabled=!canManage;
+    addToggle.hidden=!canManage;
+    addToggle.setAttribute('aria-hidden',(!canManage).toString());
+    addToggle.setAttribute('aria-expanded',(canManage && state.profileFormOpen)?'true':'false');
+  }
+  const form=qs('#profileQuickForm');
+  if(form){
+    if(!canManage){
+      state.profileFormOpen=false;
+    }
+    form.hidden=!(canManage && state.profileFormOpen);
+    if(form.hidden){
+      form.reset();
+      const roleSel=form.querySelector('select[name="role"]');
+      if(roleSel) roleSel.value='planner';
+    }else{
+      const nameInput=form.querySelector('input[name="name"]');
+      if(nameInput && !nameInput.value) nameInput.focus();
+    }
+  }
+}
+
+function toggleUserMenu(force){
+  const wrap=qs('.user-menu-wrap');
+  const panel=qs('#userMenuPanel');
+  const button=wrap?.querySelector('.user-menu');
+  if(!wrap || !panel || !button) return;
+  const shouldOpen=typeof force==='boolean'?force:!wrap.classList.contains('open');
+  if(shouldOpen && state.zoomPanelOpen) toggleZoomPanel(false);
+  wrap.classList.toggle('open', shouldOpen);
+  button.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+  panel.hidden=!shouldOpen;
+  if(shouldOpen){
+    renderProfileMenu();
+  }else{
+    state.profileFormOpen=false;
+    renderProfileMenu();
+  }
+}
+
+function renderProfileSettings(){
+  const container=qs('#profileSettings');
+  if(!container) return;
+  const profiles=ensureProfileStore().slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  container.innerHTML="";
+  if(!profiles.length){
+    container.innerHTML='<p class="muted">No profiles yet.</p>';
+    return;
+  }
+  const list=document.createElement('ul');
+  list.className='profile-settings-list';
+  profiles.forEach(profile=>{
+    const li=document.createElement('li');
+    const roleLabel=profile.role==='admin'?'Admin':'Planner';
+    const emailLine=profile.email?` • ${escapeAttr(profile.email)}`:"";
+    const assignment=profile.assignmentLabel
+      ? `<div class="assignment">Assignment label: ${escapeAttr(profile.assignmentLabel)}</div>`
+      : "";
+    li.innerHTML=`<strong>${escapeAttr(profile.name||'Unnamed')}</strong><div class="small muted">${roleLabel}${emailLine}</div>${assignment}`;
+    list.appendChild(li);
+  });
+  container.appendChild(list);
+}
+
+const userMenuButton=qs('.user-menu-wrap .user-menu');
+userMenuButton?.addEventListener('click',()=>{
+  const wrap=qs('.user-menu-wrap');
+  const isOpen=wrap?.classList.contains('open');
+  toggleUserMenu(!isOpen);
+});
+
+document.addEventListener('click',(event)=>{
+  const wrap=qs('.user-menu-wrap');
+  const panel=qs('#userMenuPanel');
+  if(!wrap || !panel) return;
+  if(!wrap.contains(event.target)){ toggleUserMenu(false); }
+});
+
+document.addEventListener('keydown',(event)=>{
+  if(event.key==='Escape'){ toggleUserMenu(false); }
+});
+
+qs('#profileAddToggle')?.addEventListener('click',()=>{
+  const canManage=getCurrentProfile()?.role==='admin';
+  if(!canManage) return;
+  state.profileFormOpen=!state.profileFormOpen;
+  renderProfileMenu();
+});
+
+qs('#profileCancel')?.addEventListener('click',()=>{
+  resetProfileForm();
+  qs('#profileAddToggle')?.focus();
+});
+
+qs('#profileQuickForm')?.addEventListener('submit',(event)=>{
+  event.preventDefault();
+  const form=event.currentTarget;
+  const data=new FormData(form);
+  const name=(data.get('name')||'').toString().trim();
+  if(!name){ alert('Name is required'); return; }
+  const email=(data.get('email')||'').toString().trim();
+  const assignment=(data.get('assignment')||'').toString().trim();
+  const role=(data.get('role')||'planner')==='admin'?'admin':'planner';
+  const profile=saveProfile({ name, email, role, assignmentLabel:assignment });
+  state.profileFormOpen=false;
+  reflectProfileUI();
+  setCurrentProfile(profile.id);
+  toggleUserMenu(false);
+});
 
 /* ---------- Init ---------- */
 (function init(){
   store.load();
   if(!store.data.events.length) seedDemo();
+  ensureProfileStore();
+  restoreZoomState();
+  applyAllTabZooms();
+  syncZoomControls();
+  reflectProfileUI();
+  renderProfileMenu();
   navigate(location.hash || "#/dashboard");  // first render happens here
 })();
 
@@ -3100,7 +3832,9 @@ function completeTask(id){
 function renderTasksTable(){
   const tbody=qs("#tblTasks tbody"); if(!tbody) return; tbody.innerHTML="";
   const fIds=new Set(filteredEvents().map(e=>e.id));
-  const list=store.data.tasks.filter(t=>fIds.has(t.eventId));
+  const profile=getCurrentProfile();
+  const profileKeys=!profile||profile.role==="admin"?null:profileKeySet(profile);
+  const list=store.data.tasks.filter(t=>fIds.has(t.eventId) && taskVisibleToProfile(t, profile, profileKeys));
   const frag=fragment();
   const eventsById=state.graph?.eventsById || new Map();
   list.forEach(t=>{
@@ -3117,7 +3851,9 @@ function renderKanban(){
   const cols={ "Not Started":qs("#col-not-started"), "In Progress":qs("#col-in-progress"), "Completed":qs("#col-completed") };
   Object.values(cols).forEach(c=>c&&(c.innerHTML=""));
   const fIds=new Set(filteredEvents().map(e=>e.id));
-  const list=store.data.tasks.filter(t=>fIds.has(t.eventId));
+  const profile=getCurrentProfile();
+  const profileKeys=!profile||profile.role==="admin"?null:profileKeySet(profile);
+  const list=store.data.tasks.filter(t=>fIds.has(t.eventId) && taskVisibleToProfile(t, profile, profileKeys));
   const eventsById=state.graph?.eventsById || new Map();
   list.forEach(t=>{
     const el=document.createElement("div");
@@ -3150,11 +3886,24 @@ qs("#btnResetTask")?.addEventListener("click", resetTaskForm);
 function renderVendors(){
   const tbody=qs("#tblVendors tbody"); if(!tbody) return; tbody.innerHTML="";
   const frag=fragment();
-  const list=store.data.vendors.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const allowedIds=(state.accessibleEventIds instanceof Set)
+    ? state.accessibleEventIds
+    : new Set(accessibleEvents().map(e=>e.id));
+  const profile=getCurrentProfile();
+  const list=store.data.vendors
+    .filter(v=>{
+      const assigned=Array.isArray(v.events)?v.events.filter(Boolean):[];
+      if(!assigned.length) return !profile || profile.role==="admin";
+      if(!allowedIds.size) return profile?.role==="admin";
+      return assigned.some(id=>allowedIds.has(id));
+    })
+    .sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   const eventsById=state.graph?.eventsById || new Map();
   list.forEach(v=>{
     const tr=document.createElement("tr");
-    const eventNames=(Array.isArray(v.events)?v.events:[])
+    const visibleEvents=(Array.isArray(v.events)?v.events:[])
+      .filter(id=>!allowedIds.size || allowedIds.has(id));
+    const eventNames=visibleEvents
       .map(id=>eventsById.get(id)?.title||"")
       .filter(Boolean);
     const eventsLabel=eventNames.length?eventNames.join(", "):"—";
@@ -3270,8 +4019,17 @@ function renderTimeline(){
 function detectConflicts(){
   const msg=qs("#slotConflicts"); if(!msg) return;
   const byLane={};
+  const allowedIds=(state.accessibleEventIds instanceof Set)
+    ? state.accessibleEventIds
+    : new Set(accessibleEvents().map(e=>e.id));
+  const profile=getCurrentProfile();
   store.data.timeline.forEach(s=>{
     const key=(s.lane||"General")+"::"+(s.eventId||"");
+    if(s.eventId){
+      if(allowedIds.size && !allowedIds.has(s.eventId)) return;
+    }else if(profile && profile.role!=="admin"){
+      return;
+    }
     (byLane[key] ||= []).push(s);
   });
   let conflicts=[];
@@ -3327,8 +4085,9 @@ function renderNotesTable(){
   const frag = fragment();
 
   // Only show ended/completed events
-  const ended = store.data.events.filter(e=>eventHasEnded(e))
-                 .sort((a,b)=>(a.eventDate||"").localeCompare(b.eventDate||""));
+  const ended = accessibleEvents()
+    .filter(e=>eventHasEnded(e))
+    .sort((a,b)=>(a.eventDate||"").localeCompare(b.eventDate||""));
 
   ended.forEach(e=>{
     const note = (store.data.notes||[]).find(n=>n.eventId===e.id);
@@ -3444,6 +4203,10 @@ function renderMap(){
 
  const eventsById = state.graph?.eventsById || new Map();
  const scopeIds = state.graph?.scopeIds || new Set(filteredEvents().map(e=>e.id));
+ const allowedIds = (state.accessibleEventIds instanceof Set)
+   ? state.accessibleEventIds
+   : new Set(accessibleEvents().map(e=>e.id));
+ const profile=getCurrentProfile();
  const evs = filteredEvents()
   .filter(e => e.status !== "Completed")
   .filter(e => Number.isFinite(e?.lat) && Number.isFinite(e?.lon));
@@ -3456,7 +4219,13 @@ function renderMap(){
   // POIs
   (store.data.pois||[]).forEach(p=>{
     if(!Number.isFinite(p.lat)||!Number.isFinite(p.lon)) return;
-    if(p.eventId && scopeIds.size && !scopeIds.has(p.eventId)) return;
+    if(p.eventId){
+      if(!allowedIds.size && profile && profile.role!=="admin") return;
+      if(scopeIds.size && !scopeIds.has(p.eventId)) return;
+      if(allowedIds.size && !allowedIds.has(p.eventId)) return;
+    }else if(profile && profile.role!=="admin"){
+      return;
+    }
     const linkedEvent=eventsById.get(p.eventId);
     const eventLine=linkedEvent?`<br>Event: ${linkedEvent.title}`:"";
     const addressLine = p.address ? `${p.address}<br>` : "";
@@ -3776,7 +4545,7 @@ function renderGlobalSuggestions(q){
   const box=qs("#globalSearchList"); if(!box) return;
   if(!q || q.length<1){ hideGlobal(); return; }
   const s=q.toLowerCase();
-  const matches=(store.data.events||[])
+  const matches=accessibleEvents()
     .filter(e=>(e.title||"").toLowerCase().includes(s) || (e.address||"").toLowerCase().includes(s))
     .sort((a,b)=>a.title.localeCompare(b.title))
     .slice(0,8);
@@ -3796,7 +4565,7 @@ function renderGlobalSuggestions(q){
 }
 
 function selectGlobal(id){
-  const ev=(store.data.events||[]).find(e=>e.id===id);
+  const ev=accessibleEvents().find(e=>e.id===id);
   if(!ev) return;
   state.filters.eventId=id;
   const inp=qs("#globalSearch"); if(inp) inp.value=ev.title;
@@ -3833,32 +4602,33 @@ qs("#globalSearch")?.addEventListener("keydown",(e)=>{
 <script>
 (function addSidebarToggle(){
   const KEY = "epp_sidebar_collapsed";
-  const header = document.querySelector('header[role="banner"]');
-  if (!header) return;
+  const toggle = document.getElementById("sidebarToggle");
+  if (!toggle) return;
 
-  // Restore state
   if (localStorage.getItem(KEY) === "1") {
     document.body.classList.add("sidebar-collapsed");
   }
 
-  // Button
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "ghost";
-  btn.style.marginTop = "6px";
-  btn.setAttribute("aria-pressed", document.body.classList.contains("sidebar-collapsed") ? "true" : "false");
-  btn.innerHTML = '<svg class="icon" aria-hidden="true"><use href="#ic-menu"></use></svg> <span class="label">Collapse</span>';
-  btn.addEventListener("click", () => {
+  const sync = () => {
+    const collapsed = document.body.classList.contains("sidebar-collapsed");
+    toggle.setAttribute("aria-pressed", collapsed ? "true" : "false");
+  };
+
+  sync();
+
+  toggle.addEventListener("click", () => {
     const collapsed = document.body.classList.toggle("sidebar-collapsed");
-    btn.setAttribute("aria-pressed", collapsed ? "true" : "false");
     localStorage.setItem(KEY, collapsed ? "1" : "0");
+    sync();
   });
 
-  // Add spacer to push controls to bottom and insert button after it
-  const spacer = document.createElement("div");
-  spacer.className = "sidebar-spacer";
-  header.appendChild(spacer);
-  header.appendChild(btn);
+  window.addEventListener("resize", () => {
+    if (window.innerWidth < 1024 && document.body.classList.contains("sidebar-collapsed")) {
+      document.body.classList.remove("sidebar-collapsed");
+      localStorage.setItem(KEY, "0");
+      sync();
+    }
+  });
 })();
 
 // ---- Batched localStorage writes ----
