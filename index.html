@@ -1313,8 +1313,14 @@ function accessibleEvents(profileOverride){
   const assignedEventIds=new Set();
   (store.data.tasks||[]).forEach(task=>{
     if(!task || !task.eventId) return;
-    const assigned=(task.assignedTo||"").trim().toLowerCase();
-    if(assigned && keys.has(assigned)){
+    const assigned=(task.assignedTo||"").toString().trim().toLowerCase();
+    if(!assigned) return;
+    if(keys.has(assigned)){
+      assignedEventIds.add(task.eventId);
+      return;
+    }
+    const parts=assigned.split(/[\s,\/]+/).filter(Boolean);
+    if(parts.some(part=>keys.has(part))){
       assignedEventIds.add(task.eventId);
     }
   });
