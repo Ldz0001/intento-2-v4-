@@ -1,0 +1,3920 @@
+
+<!DOCTYPE html>
+<!--
+[COMMENT START]
+Event Planner Pro – Single-file HTML App
+Ready for GitHub Pages
+
+How to deploy (GitHub Pages):
+1) Create a repo, add this file as `index.html` at the repo root.
+2) (Recommended) Add a minimal `404.html` with this content to support SPA routing if you later switch to non-hash routes:
+   <!DOCTYPE html><meta charset="utf-8"><script>location.href='/'</script>
+3) Enable GitHub Pages on the repo (Settings → Pages → Source: "Deploy from a branch" → branch "main"/"/" root).
+4) Open: https://<your-username>.github.io/<repo>/#/dashboard (hash routes required).
+5) Maps load from Leaflet CDN (allowed). Everything else is offline-ready after first load.
+
+Perf notes:
+• One-file SPA with hash routing for instant navigation; no render-blocking fonts/frameworks.
+• Modular JS (≤ ~60 lines per function) with batched DOM updates, Fragment insertion, and minimal reflow.
+• Tables lazy-render in chunks with “Show more”.
+• Icons via inline SVG sprite (no HTTP requests).
+• Data stored in localStorage; autosave. Optional SW via Blob registration to cache this file (graceful fallback).
+• Accessible: WCAG 2.2 AA focus rings, ARIA landmarks/roles/labels, keyboard shortcuts & skip links, semantic tables, high contrast, print styles.
+
+[COMMENT END]
+-->
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <title>Event Planner Pro — Single-file (Hash Routing, Offline, A11y)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <!-- Leaflet (maps allowed to use CDN) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <style>
+    :root{
+      --bg:#F6F3FF; --overlay: radial-gradient(900px 500px at -150px -200px,#d8ccff55,transparent 60%), radial-gradient(1000px 600px at 120% -100px,#e9e2ff66,transparent 60%), #F6F3FF;
+      --panel:#fff; --card:#FCFAFF; --border:#E4DDF8; --text:#1f1b2e; --muted:#524a79;
+      --accent:#7c3aed; --accent-2:#5b21b6; --accent-3:#a78bfa;
+      --kpi-surface:#f0e8ff;
+      --kpi-border:#c7b4f3;
+      --kpi-heading:#433278;
+      --kpi-subtext:#56428f;
+      --kpi-value:#2c1b63;
+      --success:#059669; --warning:#d97706; --danger:#dc2626;
+      --table-odd:#F3EEFF; --shadow:0 8px 28px rgba(72,50,154,.08); --glass:rgba(255,255,255,.75);
+      --focus:#7c3aed66; --pill:#efeaff; --popover:#fff; --popover-border:#dcd3fb;
+      --placeholder:#6b7280;
+      --kbd:#111; --kbd-bg:#fff; --ring: 0 0 0 3px var(--focus);
+    }
+    /* --- Dark mode readability pass (higher contrast) --- */
+    [data-theme="dark"]{
+      /* Base surfaces */
+      --bg:#0f172a;
+      --overlay:
+        radial-gradient(900px 500px at -150px -200px,#1e293b55,transparent 60%),
+        radial-gradient(1000px 600px at 120% -100px,#33415540,transparent 60%),
+        #0f172a;
+
+      --panel:#131c2f;
+      --card:#17213b;
+      --border:#32405b;
+      --text:#f8fafc;
+      --muted:#cbd5f5;
+      --table-odd:#192540;
+      --th-bg:#162033;
+      --row-hover-dark:#1d2943;
+      --ghost-bg-dark:#131b2c;
+      --active-tab-bg-dark:#243454;
+      --popover:#141c2c;
+      --popover-border:#334155;
+
+      --accent:#8b5cf6;
+      --accent-2:#6366f1;
+      --accent-3:#c4b5fd;
+      --kpi-surface:#1d2744;
+      --kpi-border:#414e74;
+      --kpi-heading:#d7d9ff;
+      --kpi-subtext:#b8bdfa;
+      --kpi-value:#f6f5ff;
+      --focus:#6366f155;
+      --pill:#1d2842;
+      --shadow:0 8px 28px rgba(0,0,0,.6);
+      --glass:rgba(15,23,42,.72);
+
+      --success:#34d399;
+      --warning:#f59e0b;
+      --danger:#ef4444;
+      --placeholder:#94a3b8;
+      --kbd:#fff;
+      --kbd-bg:#000;
+    }
+
+/* Make sure text inside tables/cards never looks "washed" */
+[data-theme="dark"] td,
+[data-theme="dark"] .card,
+[data-theme="dark"] .card p,
+[data-theme="dark"] .card li {
+  color: var(--text);
+}
+
+/* Headings in cards were too faint on dark */
+[data-theme="dark"] .card h3{ color: var(--muted); font-weight: 700 }
+
+/* Inputs/buttons: clearer edges and text */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea,
+[data-theme="dark"] button{
+  background:#111827;
+  border-color:#3b4a6a;
+  box-shadow:inset 0 0 0 1px rgba(148,163,184,.15);
+  color: var(--text);
+}
+
+/* Tabs: selected vs. rest more obvious */
+[data-theme="dark"] .tab-btn{
+  background:#141c2b;
+  border-color:#3b4a6a;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05),0 1px 0 rgba(0,0,0,.35);
+}
+[data-theme="dark"] .tab-btn[aria-current="page"]{
+  background: var(--active-tab-bg-dark);
+  border-color: var(--accent-2);
+}
+
+/* Table header & hover contrast */
+[data-theme="dark"] th{
+  background: var(--th-bg);
+  color: var(--text);
+}
+[data-theme="dark"] tr:hover td{
+  background: var(--row-hover-dark);
+}
+
+/* KPI numbers stay punchy but readable on dark */
+[data-theme="dark"] .kpi .value{
+  color: var(--accent-2);
+  text-shadow: 0 0 10px var(--glow);
+}
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    [hidden]{display:none!important}
+    body{margin:0;background:var(--overlay);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,"Noto Sans";line-height:1.45;letter-spacing:.2px;padding-bottom:env(safe-area-inset-bottom)}
+    :focus-visible{outline:2px solid var(--accent-3); box-shadow:var(--ring); border-radius:6px}
+    a.skip{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+    a.skip:focus{left:8px;top:8px;width:auto;height:auto;background:#fff;color:#000;padding:8px 10px;border-radius:8px;z-index:1000}
+    header{position:sticky;top:0;z-index:40;backdrop-filter:blur(10px);background:var(--glass);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 16px 12px}
+    header h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.4px}
+    nav[role="navigation"]{display:flex;gap:8px;flex-wrap:wrap}
+    .tab-btn{background:#fff;color:var(--text);border:1px solid var(--border);padding:8px 12px;font-size:13px;border-radius:12px;cursor:pointer;box-shadow:0 1px 0 #00000010,inset 0 0 0 1px #ffffff66;transition:transform .06s,box-shadow .12s,border-color .12s,background .12s}
+    [data-theme="dark"] .tab-btn{background:#141c2b;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05),0 1px 0 rgba(0,0,0,.35)}
+    .tab-btn:hover{border-color:var(--accent-3);box-shadow:0 4px 14px rgba(124,58,237,.2);transform:translateY(-1px)}
+    .tab-btn[aria-current="page"]{background:var(--active-tab-bg);border-color:var(--accent)}
+    [data-theme="dark"] .tab-btn[aria-current="page"]{background:var(--active-tab-bg-dark)}
+    .theme-toggle{display:inline-flex;gap:10px;align-items:center;border:1px solid var(--border);border-radius:999px;padding:6px 12px;background:#fff;cursor:pointer}
+    [data-theme="dark"] .theme-toggle{background:#141c2b}
+    .theme-toggle .label{font-size:12px;color:var(--muted)}
+/* Accent color picker button */
+.color-chip{
+  width:28px; height:28px; border-radius:999px;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg,var(--accent-3),var(--accent));
+  display:inline-flex; align-items:center; justify-content:center;
+  cursor:pointer; box-shadow:0 1px 0 #00000010, inset 0 0 0 1px #ffffff66;
+  padding:0;
+}
+.color-chip:hover{ box-shadow:0 4px 14px rgba(124,58,237,.2) }
+.color-chip:focus-visible{ outline:2px solid var(--accent-3); box-shadow:var(--ring) }
+
+.color-chip .chip-swatch{
+  width:16px; height:16px; border-radius:999px;
+  background:var(--accent);
+  box-shadow:inset 0 0 0 1px #ffffffa8;
+}
+.color-chip { position: relative; overflow: hidden; } /* add */
+.color-hit-target{
+  position: absolute; inset: 0;
+  opacity: 0;
+  width: 100%; height: 100%;
+  border: 0; margin: 0; padding: 0;
+  appearance: none; -webkit-appearance: none;
+  cursor: pointer;
+}
+/* keep color input programmatically clickable, but invisible */
+.visually-hidden-color{
+  position: fixed;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+    .icon{width:18px;height:18px;display:inline-block}
+    main{padding:18px;max-width:1320px;margin:0 auto calc(56px + env(safe-area-inset-bottom))}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+    .analysis-tab{display:flex;flex-direction:column;gap:16px}
+    .analysis-grid{display:grid;gap:16px}
+    @media (min-width:900px){.analysis-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    .analysis-card{display:flex;flex-direction:column;gap:16px}
+    .analysis-card h3{margin:0;font-size:20px;font-weight:700;color:var(--heading)}
+    .analysis-card h4{margin:0;font-size:16px;font-weight:700;color:var(--heading)}
+    .analysis-card p{margin:0;color:var(--muted)}
+    .analysis-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+    .analysis-list li{border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--card)}
+    .analysis-metric-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+    .analysis-label{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}
+    .analysis-value{font-size:22px;font-weight:700;color:var(--heading)}
+    .analysis-detail{margin-top:6px;font-size:13px;line-height:1.5;color:var(--muted)}
+    .connectivity-card{margin-top:18px;display:flex;flex-direction:column;gap:14px;}
+    .relationship-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;}
+    .relationship-item{border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;}
+    .relationship-health-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;}
+    .relationship-health-card{border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;}
+    .relationship-health-card h4{margin:0;font-size:15px;color:var(--muted);font-weight:600;}
+    .relationship-health-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
+    .relationship-health-list li{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);padding-bottom:6px;border-bottom:1px dashed var(--border);}
+    .relationship-health-list li:last-child{border-bottom:none;padding-bottom:0;}
+    .relationship-health-list strong{font-size:18px;color:var(--text);}
+    .relationship-health-list strong.positive{color:var(--accent);}
+    .relationship-tag-wrap{display:flex;flex-wrap:wrap;gap:8px;}
+    .relationship-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--pill);color:var(--muted);font-size:12px;}
+    .relationship-issue-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--muted);}
+    .relationship-issue-list li{padding:8px 10px;border:1px dashed var(--border);border-radius:12px;background:var(--card);}
+    .relationship-issue-list li strong{display:block;margin-bottom:4px;color:var(--text);font-size:13px;}
+    .relationship-issue-list li.empty{border-style:solid;color:var(--success);background:var(--kpi-surface);}
+    [data-theme="dark"] .relationship-health-card{background:var(--ghost-bg-dark,var(--card));}
+    .relationship-item h4{margin:0;font-size:15px;}
+    .relationship-item .muted{color:var(--muted);}
+    .relationship-metrics{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--muted);}
+    .relationship-metrics span{background:var(--pill);border-radius:999px;padding:2px 8px;}
+    .relationship-next{font-size:12px;color:var(--muted);}
+    .relationship-empty{font-size:13px;color:var(--muted);}
+    .event-connections{margin-top:10px;padding:10px;border-radius:12px;background:var(--panel);border:1px solid var(--border);display:flex;flex-direction:column;gap:6px;}
+    .event-connections span{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+    .event-connections strong{color:var(--text);}
+    .multi-select{min-height:96px;padding:6px;border-radius:10px;border:1px solid var(--border);background:var(--card);font-family:inherit;font-size:13px;}
+    [data-theme="dark"] .relationship-item{background:var(--card);border-color:var(--border);}
+    [data-theme="dark"] .event-connections{background:var(--ghost-bg-dark, var(--panel));}
+    #dashboard .card.kpi{background:var(--kpi-surface);border-color:var(--kpi-border);padding:0;box-shadow:0 12px 24px -16px var(--accent-2);text-align:left;transition:transform .12s ease,box-shadow .12s ease;display:flex}
+    #dashboard .card.kpi:hover,#dashboard .card.kpi:focus-within{transform:translateY(-2px);box-shadow:0 18px 32px -18px var(--accent-2)}
+    #dashboard .card.kpi .kpi-trigger{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:18px;width:100%;height:100%;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;flex:1;border-radius:inherit}
+    .events-progress{margin:16px 0 24px;display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid var(--border);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
+    .events-progress .progress-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    .events-progress .progress-title{font-weight:600;font-size:14px;color:var(--kpi-heading);text-transform:uppercase;letter-spacing:.5px}
+    .events-progress .progress-summary{font-size:12px;color:var(--muted)}
+    .events-progress .progress-value{font-weight:700;color:var(--accent-2)}
+    .meter-track{position:relative;height:10px;border-radius:999px;background:var(--border);overflow:hidden}
+    .meter-fill{position:absolute;inset:0;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-3));border-radius:inherit;transition:width .3s ease}
+    .event-card-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+    /* === Events: BI row view & segmented toggle === */
+    .segmented{display:inline-flex;border:1px solid var(--border);border-radius:999px;overflow:hidden;background:var(--panel);margin-left:8px}
+    .segmented button{appearance:none;border:0;background:transparent;padding:6px 10px;font:inherit;color:var(--muted);cursor:pointer}
+    .segmented button[aria-pressed="true"]{background:var(--accent-1);color:#fff}
+    .event-list-head{display:none;margin:8px 0 6px;border:1px solid var(--border);background:var(--panel);color:var(--muted);padding:8px 12px;border-radius:12px;font-size:12px}
+    .event-list-head .head-grid{display:grid;grid-template-columns:1.6fr 1.4fr .8fr 1fr auto;gap:16px}
+    /* Default cards layout remains */
+    #events[data-event-view="cards"] .event-card-grid{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));}
+    /* Row view: one card per row, horizontally structured */
+    #events[data-event-view="rows"] .event-card-grid{grid-template-columns:1fr;}
+    #events[data-event-view="rows"] .event-card{display:grid;grid-template-columns:1.6fr 1.4fr .8fr 1fr auto;align-items:center;gap:16px;min-height:auto;padding:12px 16px}
+    #events[data-event-view="rows"] .event-card .event-card-header{margin:0}
+    #events[data-event-view="rows"] .event-card .event-card-title h4{font-size:16px;margin:0}
+    #events[data-event-view="rows"] .event-card .event-address{margin:0}
+    #events[data-event-view="rows"] .event-card .event-actions{margin:0;justify-content:flex-end}
+    #events[data-event-view="rows"] .event-card .event-progress{min-width:180px}
+    #events[data-event-view="rows"] .event-card .event-connections{border:1px solid var(--border);background:var(--card);border-radius:12px;padding:8px 10px}
+    #events[data-event-view="rows"] .event-card.is-editing{display:block;} /* fall back to full-card for editing */
+    #events[data-event-view="rows"] .events-empty{display:block}
+    #events[data-event-view="rows"] .event-card-header{grid-column:1}
+    #events[data-event-view="rows"] .event-address{grid-column:2}
+    #events[data-event-view="rows"] .event-progress{grid-column:3}
+    #events[data-event-view="rows"] .event-connections{grid-column:4}
+    #events[data-event-view="rows"] .event-actions{grid-column:5}
+    #events[data-event-view="rows"] .event-card .status{margin-left:auto}
+    #events[data-event-view="rows"] .event-card .event-card-title .event-meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40ch}
+    /* Show header row only for row view */
+    #events[data-event-view="rows"] .event-list-head{display:block}
+    @media (max-width: 900px){
+      #events[data-event-view="rows"] .event-card{grid-template-columns:1fr;grid-auto-rows:auto}
+      #events[data-event-view="rows"] .event-card-header,
+      #events[data-event-view="rows"] .event-address,
+      #events[data-event-view="rows"] .event-progress,
+      #events[data-event-view="rows"] .event-connections,
+      #events[data-event-view="rows"] .event-actions{grid-column:1}
+      #events[data-event-view="rows"] .event-list-head{display:none}
+    }
+
+    .event-card{border:1px solid var(--border);border-radius:16px;padding:18px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px;min-height:220px;position:relative}
+    .event-card.is-editing{gap:16px;padding:18px 18px 16px;border-color:var(--accent-2);box-shadow:0 12px 28px -18px var(--accent-2)}
+    .event-card-header{display:flex;align-items:flex-start;gap:12px}
+    .event-card-title{display:flex;flex-direction:column;gap:6px;flex:1}
+    .event-card-title h4{margin:0;font-size:17px;font-weight:700;color:var(--text)}
+    .event-meta{font-size:12px;color:var(--muted)}
+    .event-address{font-size:13px;color:var(--text);line-height:1.4;background:var(--kpi-surface);border-radius:12px;padding:10px 12px;border:1px solid var(--kpi-border)}
+    .event-progress{display:flex;flex-direction:column;gap:6px}
+    .event-progress .progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+    .event-actions{display:flex;gap:10px;margin-top:auto}
+    .event-actions button{flex:1;justify-content:center}
+    .event-card-form{display:flex;flex-direction:column;gap:14px}
+    .event-card-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+    .event-card-form-grid .full{grid-column:1/-1}
+    .event-card-form label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted);font-weight:600}
+    .event-card-form input,.event-card-form select{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--text)}
+    .event-card-form input:focus-visible,.event-card-form select:focus-visible{outline:2px solid var(--accent-3);box-shadow:var(--ring)}
+    .event-card-form-actions{display:flex;gap:10px}
+    .event-card-form-actions button{flex:1;justify-content:center}
+    .events-empty{padding:18px;border:1px dashed var(--border);border-radius:14px;text-align:center;color:var(--muted);font-size:13px}
+    #dashboard .card.kpi .kpi-trigger:focus-visible{outline:2px solid var(--accent-3);box-shadow:var(--ring);border-radius:inherit}
+    #dashboard .card.kpi h3{margin:0;font-size:13px;font-weight:700;color:var(--kpi-heading);letter-spacing:.2px;text-transform:uppercase}
+    #dashboard .card.kpi .value{font-size:36px;font-weight:900;margin:0;color:var(--kpi-value);text-shadow:0 0 12px var(--glow)}
+    #dashboard .card.kpi .kpi-sub{
+      font-size:12px;
+      color:var(--kpi-subtext);
+      font-weight:600;
+      letter-spacing:.1px;
+      line-height:1.35;
+      display:block;
+      display:-webkit-box;
+      -webkit-box-orient:vertical;
+      -webkit-line-clamp:3;
+      white-space:pre-line;
+      overflow:hidden;
+      width:100%;
+      max-height:calc(1.35em*3);
+    }
+    #dashboard .kpi-detail{margin-top:18px;gap:14px;display:flex;flex-direction:column}
+    #dashboard .kpi-detail[hidden]{display:none}
+    #dashboard .kpi-detail .detail-header{align-items:center}
+    #dashboard .kpi-detail-body{display:flex;flex-direction:column;gap:12px;font-size:13px;color:var(--muted)}
+    #dashboard .kpi-detail-body p{margin:0}
+    #dashboard .kpi-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+    #dashboard .kpi-list li{padding:10px 12px;border:1px solid var(--kpi-border);border-radius:12px;background:var(--card);box-shadow:0 6px 16px -12px rgba(67,50,120,.4)}
+    #dashboard .kpi-list li .primary{font-weight:600;color:var(--text);margin-bottom:4px}
+    #dashboard .kpi-list li .secondary{font-size:12px;color:var(--muted)}
+    .collapsible-card{padding:0;overflow:hidden}
+    .collapsible-card summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;background:var(--ghost-bg);border-radius:16px}
+    .collapsible-card summary:focus-visible{outline:2px solid var(--accent-3);outline-offset:2px}
+    .collapsible-card summary::-webkit-details-marker{display:none}
+    .collapsible-card summary::after{content:"";border:6px solid transparent;border-bottom-color:var(--muted);margin-left:auto;transition:transform .2s ease}
+    .collapsible-card[open] summary{border-bottom:1px solid var(--border);border-radius:16px 16px 0 0}
+    .collapsible-card[open] summary::after{transform:rotate(180deg)}
+    [data-theme="dark"] .collapsible-card summary{background:var(--ghost-bg-dark)}
+    .collapsible-body{padding:14px;display:flex;flex-direction:column;gap:12px}
+    .filters-bar{margin:0 0 16px}
+    .filters-content{display:flex;flex-direction:column;gap:12px}
+    .slot-editor-body{display:flex;flex-direction:column;gap:12px}
+    .filters-toolbar{display:flex;justify-content:flex-end}
+    .filters-toolbar button{margin-left:auto}
+    .filters-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+    @media(max-width:720px){.filters-grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}}
+    .grid{display:grid;gap:12px}
+    .grid>*{min-width:0}
+    .grid>.card,
+    .grid>form{width:100%}
+    .grid-1{grid-template-columns:1fr}
+    .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .grid-5{grid-template-columns:repeat(5,minmax(0,1fr))}
+    .gap-tight{gap:8px}
+    .grid.kpi{grid-template-columns:repeat(4,minmax(0,1fr))}
+    @media(max-width:1000px){.grid.kpi{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:620px){
+      #dashboard .grid.kpi{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin:0}
+      #dashboard .grid.kpi .card{min-width:0}
+    }
+    #timeline .timeline-layout{display:flex;flex-direction:column;gap:12px}
+    #timeline .slot-editor-card{align-self:stretch}
+    #timeline .slots-card{display:flex;flex-direction:column}
+    #timeline .slots-card .table-wrap{flex:1}
+    #events form.grid-4,
+    #vendors form.grid-4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    #budget form.grid-5{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+    .card h3{margin:0 0 6px;font-size:14px;color:var(--muted);font-weight:700}
+    .kpi .value{font-size:34px;font-weight:900;margin-top:6px;color:var(--accent-2);text-shadow:0 0 8px var(--glow)}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .spacer{flex:1}.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;align-items:stretch}
+    .two>.card{display:flex;flex-direction:column;gap:12px}
+    .two>.card .table-wrap{flex:1}
+    @media(max-width:1100px){.two{grid-template-columns:1fr}}
+    input,select,textarea,button{background:#fff;color:var(--text);border:1px solid var(--border);border-radius:12px;padding:9px 12px;font-size:14px;box-shadow:inset 0 0 0 1px #ffffffcc}
+    input::placeholder,textarea::placeholder{color:var(--placeholder);opacity:.75}
+    [data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea,[data-theme="dark"] button{background:#111827;border-color:#3b4a6a;box-shadow:inset 0 0 0 1px rgba(148,163,184,.15);color:var(--text)}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent-3);box-shadow:0 0 0 3px var(--focus),inset 0 0 0 1px #ffffff80}
+    textarea{min-height:100px}
+    button.primary{background:linear-gradient(180deg,#9f7aea,#7c3aed);color:#fff;border-color:var(--accent)}
+    button.primary:hover{box-shadow:0 6px 20px rgba(124,58,237,.35)}
+    button.ghost{background:var(--ghost-bg)}[data-theme="dark"] button.ghost{background:var(--ghost-bg-dark)}
+    button.success{background:linear-gradient(180deg,#10b981,#059669);color:#fff;border-color:#10b981}
+    button.danger{background:linear-gradient(180deg,#ef4444,#b91c1c);color:#fff;border-color:#ef4444}
+    button.link{background:transparent;border-color:transparent;text-decoration:underline;cursor:pointer;padding:4px 6px;border-radius:8px}
+    .table-wrap{overflow:auto;border-radius:12px;border:1px solid var(--border);-webkit-overflow-scrolling:touch}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:top}
+    th{text-align:left;color:var(--muted);background:var(--th-bg);position:sticky;top:0;z-index:1}
+    [data-theme="dark"] th{background:var(--th-bg);color:var(--text)}
+    tbody tr:nth-child(odd) td{background:var(--table-odd)}
+    [data-theme="dark"] tr:hover td{background:var(--row-hover-dark)}
+    tr:hover td{background:var(--row-hover)}
+    .status{padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid var(--border);white-space:nowrap}
+    .s-planning{background:#ede9fe;color:#5b21b6}.s-executing{background:#e0e7ff;color:#3730a3}
+    .s-completed{background:#e6f9f2;color:#065f46;border-color:#10b98166}.s-overdue{background:#fee2e2;color:#991b1b;border-color:#ef444466}
+    [data-theme="dark"] .s-planning{background:#291f5f;color:#c4b5fd}
+    [data-theme="dark"] .s-executing{background:#1f215f;color:#a5b4fc}
+    [data-theme="dark"] .s-completed{background:#1c2f2a;color:#86efac}
+    [data-theme="dark"] .s-overdue{background:#3a1820;color:#fecaca}
+    .pill{padding:3px 8px;border-radius:999px;border:1px solid var(--border);font-size:12px;background:var(--pill);color:var(--text)}
+    .muted{color:var(--muted)} .hr{height:1px;background:var(--border);margin:12px 0}
+    .map{height:440px;border-radius:12px;border:1px solid var(--border);overflow:hidden}
+    .autocomplete-wrap{position:relative}
+    .autocomplete-list{position:absolute;top:100%;left:0;right:0;z-index:30;background:var(--popover);border:1px solid var(--popover-border);border-radius:12px;margin-top:6px;box-shadow:var(--shadow);max-height:260px;overflow:auto}
+    .autocomplete-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px}
+    .autocomplete-item:last-child{border-bottom:0}
+    .autocomplete-item:hover,.autocomplete-item.active{background:var(--row-hover)}
+    [data-theme="dark"] .autocomplete-item:hover,[data-theme="dark"] .autocomplete-item.active{background:var(--row-hover-dark)}
+    .kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .col{background:var(--card);border:1px dashed var(--border);border-radius:12px;padding:10px;min-height:220px}
+    .ticket{background:#fff;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px;margin:6px 0;box-shadow:0 1px 0 #00000010}
+    [data-theme="dark"] .ticket{background:var(--card);border-color:var(--border)}
+    .ticket.overdue{border-color:#ef4444}
+    .ticket .meta{font-size:12px;color:var(--muted)}
+    kbd{border:1px solid #999;border-bottom-width:2px;padding:1px 6px;border-radius:6px;background:var(--kbd-bg);color:var(--kbd);font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+    @media print{
+      @page{margin:12mm}
+      header, .no-print, #settings, #dashboard, #events, #tasks, #budget, #map {display:none !important}
+      #timeline, #vendors {display:block !important}
+      body{background:#fff}
+      .card{box-shadow:none;border:0;padding:0}
+      .table-wrap{border:0;overflow:visible}
+      th{position:static}
+    }
+header { gap: 14px; }
+header .search-wrap{position:relative; max-width:360px; flex:1 1 300px}
+#globalSearch{width:100%}
+#globalSearchList{position:absolute; top:100%; left:0; right:0; z-index:50; background:var(--popover); border:1px solid var(--popover-border); border-radius:12px; margin-top:6px; box-shadow:var(--shadow); max-height:260px; overflow:auto}
+.search-item{padding:10px 12px; cursor:pointer; border-bottom:1px solid var(--border); font-size:13px}
+.search-item:last-child{border-bottom:0}
+.search-item:hover{background:var(--row-hover)}
+[data-theme="dark"] .search-item:hover,[data-theme="dark"] .search-item.active{background:var(--row-hover-dark)}
+/* Palette fallbacks (will be overwritten by JS when you pick a color) */
+:root{
+  --th-bg:#f5f0ff;
+  --row-hover:#efe8ff;
+  --active-tab-bg:#f0eaff;
+  --ghost-bg:#f8f6ff;
+  --glow:#7c3aed18; /* used by KPI glow */
+  --kpi-surface:#f0e8ff;
+  --kpi-border:#c7b4f3;
+  --kpi-heading:#433278;
+  --kpi-subtext:#56428f;
+  --kpi-value:#2c1b63;
+}
+[data-theme="dark"]{
+  --th-bg:#162033;
+  --row-hover-dark:#1d2943;
+  --active-tab-bg-dark:#243454;
+  --ghost-bg-dark:#131b2c;
+  --glow:#6366f11c;
+  --kpi-surface:#1d2744;
+  --kpi-border:#414e74;
+  --kpi-heading:#d7d9ff;
+  --kpi-subtext:#b8bdfa;
+  --kpi-value:#f6f5ff;
+}
+
+    @media(max-width:980px){
+      header{flex-wrap:wrap;align-items:flex-start;row-gap:12px;justify-content:flex-start}
+      header h1{flex:1 1 100%;margin-bottom:4px}
+      header .search-wrap{order:3;flex:1 1 100%;max-width:none}
+      header .scope{order:2;flex:1 1 100%;justify-content:space-between}
+      header .scope select{width:100%}
+      #accentBtn{order:4;margin-left:auto}
+      #themeToggle{order:5}
+      nav[role="navigation"]{order:6;width:100%;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;margin:4px -16px -8px;padding:0 16px 10px;scroll-snap-type:x proximity;scrollbar-width:none}
+      nav[role="navigation"]::-webkit-scrollbar{display:none}
+      nav[role="navigation"] .tab-btn{flex:0 0 auto;scroll-snap-align:start}
+    }
+
+    @media(max-width:820px){
+      .grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .grid-5{grid-template-columns:repeat(3,minmax(0,1fr))}
+    }
+
+    @media(max-width:720px){
+      header{padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+      header h1{font-size:16px}
+      main{padding:14px}
+      .tab-btn{padding:7px 10px;font-size:12px}
+      .theme-toggle{padding:6px 10px}
+      header .scope{order:4;flex-direction:column;align-items:flex-start}
+      #accentBtn{order:2}
+      #themeToggle{order:3;margin-left:0}
+      nav[role="navigation"]{order:5;margin:8px -14px -8px;padding:0 14px 10px;scroll-snap-type:x proximity;scrollbar-width:none}
+      .grid-2,.grid-3,.grid-4,.grid-5{grid-template-columns:1fr}
+    }
+
+    @media(max-width:600px){
+      .map{height:320px}
+      header .scope{gap:6px}
+    }
+
+    html.is-mobile main{padding:12px}
+    html.is-mobile header{padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+    html.is-mobile .tab.card{padding:12px}
+    html.is-mobile #dashboard .grid.kpi{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    html.is-mobile #dashboard .grid.kpi .card{align-items:flex-start;gap:8px;min-height:88px;padding:16px}
+    html.is-mobile #dashboard .grid.kpi .card h3{font-size:12px}
+    html.is-mobile #dashboard .grid.kpi .value{font-size:clamp(26px,7vw,36px)}
+    html.is-mobile #dashboard .two{grid-template-columns:1fr}
+    html.is-mobile #dashboard .two>.card{gap:10px}
+    html.is-mobile #dashboard .card .grid.grid-2{grid-template-columns:1fr}
+    html.is-mobile #timeline .timeline-layout{gap:10px}
+    html.is-mobile #vendors form.grid-4,
+    html.is-mobile #events form.grid-4,
+    html.is-mobile #budget form.grid-5{grid-template-columns:1fr}
+    html.is-mobile .table-wrap{overflow:auto}
+    html.is-mobile table{table-layout:auto}
+    html.is-mobile th,html.is-mobile td{padding:9px 12px;font-size:13px;white-space:nowrap;word-break:normal}
+    html.is-mobile th{position:static}
+
+header .scope{display:inline-flex; align-items:center; gap:8px}
+#leafletMap{ position: relative; } /* ensures empty overlay anchors correctly */
+
+  </style>
+
+<style>
+/* === Left Sidebar Layout (drop‑in) ====================================== */
+@media (min-width: 1024px) {
+  html, body { height: 100%; }
+  body {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    grid-template-areas: "sidebar content";
+    gap: 0;
+    min-height: 100vh;
+  }
+  header[role="banner"] {
+    grid-area: sidebar;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: auto;
+    padding: 16px;
+    border-right: 1px solid var(--border);
+    border-bottom: 0; /* was topbar */
+    background: var(--panel);
+    box-shadow: none;
+  }
+  /* Title */
+  #appTitle { font-size: 18px; line-height: 1.2; margin: 0 0 12px 0; }
+
+  /* Search + scope become full-width blocks */
+  .search-wrap, .scope { width: 100%; }
+  .search-wrap { margin: 8px 0; }
+
+  /* Vertical nav */
+  nav[role="navigation"] {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 8px 0 12px 0;
+  }
+  nav .tab-btn {
+    width: 100%;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  /* Accent + theme controls pinned to bottom */
+  .sidebar-spacer { flex: 1 1 auto; }
+  #themeToggle { margin-top: 8px; }
+
+  /* Main content */
+  main#main {
+    grid-area: content;
+    padding: 20px clamp(16px, 2.2vw, 28px);
+    max-width: none;
+  }
+}
+
+/* Collapsed sidebar (optional) */
+@media (min-width: 1024px) {
+  body.sidebar-collapsed { grid-template-columns: 72px minmax(0,1fr); }
+  body.sidebar-collapsed header[role="banner"] { padding: 12px 8px; }
+  body.sidebar-collapsed #appTitle, 
+  body.sidebar-collapsed .search-wrap,
+  body.sidebar-collapsed .scope,
+  body.sidebar-collapsed .color-chip .label,
+  body.sidebar-collapsed #themeLabel { display: none !important; }
+  body.sidebar-collapsed nav .tab-btn { justify-content: center; }
+}
+
+/* Subtle polish */
+nav .tab-btn[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--accent-3); }
+</style>
+</head>
+<body>
+<a class="skip" href="#main" data-testid="skip-link">Skip to content</a>
+<!-- Inline SVG sprite -->
+<svg width="0" height="0" style="position:absolute;left:-9999px;overflow:hidden" aria-hidden="true" focusable="false">
+  <symbol id="ic-sun" viewBox="0 0 24 24"><path d="M6.76 4.84l-1.8-1.79L3.17 4.84l1.79 1.8 1.8-1.8zm10.48 0l1.8-1.79 1.79 1.79-1.79 1.8-1.8-1.8zM12 4V1h-0v3h0zm0 19v-3h0v3h0zM4 12H1v0h3v0zm19 0h-3v0h3v0zM6.76 19.16l-1.8 1.79-1.79-1.79 1.79-1.8 1.8 1.8zm10.48 0l1.8 1.79 1.79-1.79-1.79-1.8-1.8 1.8zM12 7a5 5 0 100 10 5 5 0 000-10z"/></symbol>
+  <symbol id="ic-moon" viewBox="0 0 24 24"><path d="M12.74 2a9 9 0 109.26 11.45A7.5 7.5 0 0112.74 2z"/></symbol>
+  <symbol id="ic-plus" viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></symbol>
+  <symbol id="ic-edit" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></symbol>
+  <symbol id="ic-trash" viewBox="0 0 24 24"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></symbol>
+  <symbol id="ic-check" viewBox="0 0 24 24"><path d="M9 16.2l-3.5-3.5L4 14.2 9 19l12-12-1.5-1.5z"/></symbol>
+  <symbol id="ic-download" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4V7h3l-5-5z"/></symbol>
+  <symbol id="ic-upload" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM7 10h3v6h4v-6h3l-5-5-5 5z"/></symbol>
+  <symbol id="ic-refresh" viewBox="0 0 24 24"><path d="M17.65 6.35A7.95 7.95 0 0012 4V1L7 6l5 5V7a5 5 0 11-4.9 6H5a7 7 0 107.65-6.65z"/></symbol>
+  <symbol id="ic-x" viewBox="0 0 24 24"><path d="M6.225 4.811L12 10.586l5.775-5.775 1.414 1.414L13.414 12l5.775 5.775-1.414 1.414L12 13.414l-5.775 5.775-1.414-1.414L10.586 12 4.811 6.225z"/></symbol>
+  <symbol id="ic-funnel" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4L3 5z"/></symbol>
+  <symbol id="ic-pin" viewBox="0 0 24 24"><path d="M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></symbol>
+  <symbol id="ic-save" viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 00-2 2v14l4-4h10a2 2 0 002-2V5a2 2 0 00-2-2zM7 7h8v2H7V7z"/></symbol>
+  <symbol id="ic-calendar" viewBox="0 0 24 24"><path d="M7 2h2v2h6V2h2v2h3v18H4V4h3V2zm13 8H4v10h16V10z"/></symbol>
+  <symbol id="ic-map" viewBox="0 0 24 24"><path d="M15 4l-6 2-6-2v16l6 2 6-2 6 2V6l-6-2zM9 20l-4-1.33V5.33L9 6.67V20zm6 0l-4-1.33V6.67L15 5.33V20zm2-13.33l2 0.67v13.34l-2-0.67V6.67z"/></symbol>
+  <symbol id="ic-users" viewBox="0 0 24 24"><path d="M16 11a4 4 0 10-4-4 4 4 0 004 4zm-8 0a4 4 0 10-4-4 4 4 0 004 4zm0 2c-2.67 0-8 1.34-8 4v3h12v-3c0-2.66-5.33-4-8-4zm8 0c-.84 0-1.73.08-2.63.24 1.74 1 2.63 2.34 2.63 3.76v3h8v-3c0-2.66-5.33-4-8-4z"/></symbol>
+  <symbol id="ic-briefcase" viewBox="0 0 24 24"><path d="M10 4h4l1 2h5v14H4V6h5l1-2zm-4 4v10h12V8H6zm4 0h4V6h-4v2z"/></symbol>
+  <symbol id="ic-link" viewBox="0 0 24 24"><path d="M3.9 12a5.1 5.1 0 015.1-5.1H12v2.1H9a3 3 0 100 6h3v2.1H9a5.1 5.1 0 01-5.1-5.1zm7.1-3h3a5.1 5.1 0 110 10.2H13v-2.1h1a3 3 0 100-6h-3V9z"/></symbol>
+</svg>
+
+<header role="banner" aria-label="Application header">
+<h1 id="appTitle">Event Planner Pro</h1>
+<div class="search-wrap no-print" aria-label="Global event search">
+  <input id="globalSearch" placeholder="Search events…" aria-label="Search events (global)" autocomplete="off" />
+  <div id="globalSearchList" role="listbox" style="display:none"></div>
+</div>
+  <nav role="navigation" aria-label="Primary">
+    <button class="tab-btn" data-testid="nav-dashboard" data-route="#/dashboard" aria-current="page">Dashboard</button>
+    <button class="tab-btn" data-testid="nav-analysis" data-route="#/analysis">Analysis</button>
+    <button class="tab-btn" data-testid="nav-events" data-route="#/events">Events</button>
+    <button class="tab-btn" data-testid="nav-post" data-route="#/post">Post-Event</button>
+    <button class="tab-btn" data-testid="nav-timeline" data-route="#/timeline">Timeline</button>
+    <button class="tab-btn" data-testid="nav-vendors" data-route="#/vendors">Vendors</button>
+    <button class="tab-btn" data-testid="nav-budget" data-route="#/budget">Budget</button>
+    <button class="tab-btn" data-testid="nav-tasks" data-route="#/tasks">Tasks</button>
+    <button class="tab-btn" data-testid="nav-map" data-route="#/map" aria-controls="map">Map</button>
+    <button class="tab-btn" data-testid="nav-settings" data-route="#/settings">Settings</button>
+  </nav>
+<div class="scope no-print">
+  <div class="small muted" aria-hidden="true">Scope</div>
+  <select id="scopeEvent" title="Data scope (All vs specific event)">
+    <option value="">All events</option>
+  </select>
+</div>
+<!-- Accent color picker (small chip + hidden input) -->
+<button id="accentBtn" class="color-chip no-print" type="button"
+          title="Pick accent color" aria-label="Pick accent color">
+    <span class="chip-swatch" aria-hidden="true"></span>
+    <input id="accentPicker" type="color" value="#7c3aed"
+           class="color-hit-target" aria-label="Pick accent color">
+  </button>
+  <button id="themeToggle" class="theme-toggle" title="Toggle theme" aria-pressed="false" data-testid="theme-toggle">
+    <svg class="icon" id="themeIcon" aria-hidden="true"><use href="#ic-sun"></use></svg>
+    <span id="themeLabel" class="label">Light</span>
+  </button>
+</header>
+
+<main id="main" tabindex="-1">
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="tab card" role="region" aria-labelledby="h-dashboard">
+    <h2 id="h-dashboard" class="visually-hidden" style="position:absolute;left:-9999px">Dashboard</h2>
+    <div class="grid kpi" aria-live="polite">
+      <div class="card kpi" role="group" aria-label="Upcoming events">
+        <button class="kpi-trigger" type="button" data-kpi="upcoming" aria-expanded="false" aria-controls="kpiDetailPanel">
+          <h3>Upcoming Events</h3>
+          <div class="value" id="kpiUpcoming">0</div>
+          <div class="kpi-sub" id="kpiUpcomingSummary">No upcoming events</div>
+        </button>
+      </div>
+      <div class="card kpi" role="group" aria-label="Tasks completion">
+        <button class="kpi-trigger" type="button" data-kpi="completion" aria-expanded="false" aria-controls="kpiDetailPanel">
+          <h3>Tasks Completion %</h3>
+          <div class="value" id="kpiCompletion">0%</div>
+          <div class="kpi-sub" id="kpiCompletionSummary">No tasks yet</div>
+        </button>
+      </div>
+      <div class="card kpi" role="group" aria-label="Overdue tasks">
+        <button class="kpi-trigger" type="button" data-kpi="overdue" aria-expanded="false" aria-controls="kpiDetailPanel">
+          <h3>Overdue Tasks</h3>
+          <div class="value" id="kpiOverdue">0</div>
+          <div class="kpi-sub" id="kpiOverdueSummary">All caught up</div>
+        </button>
+      </div>
+      <div class="card kpi" role="group" aria-label="Average rating">
+        <button class="kpi-trigger" type="button" data-kpi="rating" aria-expanded="false" aria-controls="kpiDetailPanel">
+          <h3>Average Rating</h3>
+          <div class="value" id="kpiRating">0.00</div>
+          <div class="kpi-sub" id="kpiRatingSummary">No ratings yet</div>
+        </button>
+      </div>
+    </div>
+    <div id="kpiDetailPanel" class="card kpi-detail" hidden aria-live="polite" aria-labelledby="kpiDetailTitle">
+      <div class="row detail-header">
+        <h3 id="kpiDetailTitle">Details</h3>
+        <div class="spacer"></div>
+        <button id="kpiDetailClose" type="button" class="ghost" aria-label="Close KPI details">
+          <svg class="icon" aria-hidden="true"><use href="#ic-x"></use></svg>
+          Close
+        </button>
+      </div>
+      <div id="kpiDetailBody" class="kpi-detail-body"></div>
+    </div>
+    <div class="card connectivity-card" aria-live="polite">
+      <div class="row">
+        <h3>Event Connectivity</h3>
+        <div class="spacer"></div>
+        <div class="small muted">See how tasks, vendors, budgets, and schedules interlink for each event.</div>
+      </div>
+      <div id="eventConnectivity" class="relationship-grid"></div>
+    </div>
+    <div class="card connectivity-card" aria-live="polite">
+      <div class="row">
+        <h3>Data Health &amp; Links</h3>
+        <div class="spacer"></div>
+        <div class="small muted">Spot missing associations and orphaned records to strengthen BI insights.</div>
+      </div>
+      <div id="dataHealth" class="relationship-health-grid"></div>
+    </div>
+  </section>
+
+  <!-- ANALYSIS -->
+  <section id="analysis" class="tab analysis-tab" role="region" aria-labelledby="h-analysis" hidden>
+    <div class="analysis-grid">
+      <article class="card analysis-card">
+        <div class="row">
+          <h3 id="h-analysis">Analysis</h3>
+          <div class="spacer"></div>
+          <p class="small muted">Full review of operational metrics based on the current scope.</p>
+        </div>
+        <div id="analysisActual" aria-labelledby="h-analysis"></div>
+      </article>
+      <article class="card analysis-card">
+        <div class="row">
+          <h4 id="h-analysis-forecast">Statistical Predictions</h4>
+          <div class="spacer"></div>
+          <p class="small muted">Forward-looking projections derived from recent performance.</p>
+        </div>
+        <div id="analysisPredictions" aria-labelledby="h-analysis-forecast"></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- EVENTS -->
+  <section id="events" class="tab card" role="region" aria-labelledby="h-events" hidden>
+    <div class="row"><h3 id="h-events">Events</h3><div class="spacer"></div>
+      
+      <div id="eventsViewToggle" class="segmented" role="group" aria-label="View switch">
+        <button type="button" data-view="cards" aria-pressed="true" title="Card view">Cards</button>
+        <button type="button" data-view="rows" aria-pressed="false" title="Row view">Rows</button>
+      </div>
+
+      <button class="primary" id="btnAddEvent" data-testid="add-event"><svg class="icon"><use href="#ic-plus"></use></svg> Add Event</button>
+    </div>
+    <div class="events-progress" aria-live="polite">
+      <div class="progress-head">
+        <div>
+          <div class="progress-title">Overall Task Completion</div>
+          <div class="progress-summary" id="eventsGlobalProgressSummary">No tasks yet</div>
+        </div>
+        <div class="progress-value" id="eventsGlobalProgressPercent">0%</div>
+      </div>
+      <div id="eventsGlobalProgressBar" class="meter-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="No tasks yet">
+        <div id="eventsGlobalProgressFill" class="meter-fill" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="event-list-head" aria-hidden="true"><div class="head-grid"><div>Event</div><div>Address</div><div>Progress</div><div>Links</div><div>Actions</div></div></div>
+    <div id="eventCards" class="event-card-grid" role="list" aria-live="polite"></div>
+    <div class="hr"></div>
+    <h3>Event Form</h3>
+    <form class="grid grid-4 gap-tight" aria-label="Event form" onsubmit="return false;">
+      <input id="eId" type="hidden" data-testid="event-id">
+      <div><div class="small">Title*</div><input id="eTitle" placeholder="e.g., García Baptism" required data-testid="event-title"/></div>
+      <div><div class="small">Type*</div><select id="eType" required data-testid="event-type"><option>Wedding</option><option>Baptism</option><option>Party</option></select></div>
+      <div><div class="small">Date*</div><input id="eDate" type="date" required data-testid="event-date"/></div>
+      <div><div class="small">Status*</div><select id="eStatus" required data-testid="event-status"><option>Planning</option><option>Executing</option><option>Completed</option></select></div>
+      <div class="autocomplete-wrap" style="grid-column: 1 / span 2;">
+        <div class="small">Address* (type to search)</div>
+        <input id="eAddress" placeholder="Start typing an address…" autocomplete="off" data-testid="event-address" aria-autocomplete="list" aria-controls="addrList" aria-expanded="false"/>
+        <div id="addrList" class="autocomplete-list" role="listbox" style="display:none;"></div>
+      </div>
+      <div><div class="small">Owner</div><input id="eOwner" placeholder="owner@yourorg.com" data-testid="event-owner"/></div>
+      <div><div class="small">Latitude</div><input id="eLat" type="number" step="any" placeholder="auto from address" data-testid="event-lat"/></div>
+      <div><div class="small">Longitude</div><input id="eLon" type="number" step="any" placeholder="auto from address" data-testid="event-lon"/></div>
+    </form>
+    <div class="row" style="margin-top:10px;">
+     <button class="success" id="btnSaveEvent" data-testid="save-event">
+  <svg class="icon"><use href="#ic-save"></use></svg> Save
+</button>
+<button type="button" class="ghost" id="btnResetEvent" data-testid="reset-event">
+  <svg class="icon"><use href="#ic-refresh"></use></svg> Reset
+</button>
+    </div>
+    <div class="small muted" style="margin-top:6px;">Address search by OpenStreetMap Nominatim. Select a suggestion to enable saving. Link a POI to an event to surface it in dashboards and maps.</div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section id="timeline" class="tab card" role="region" aria-labelledby="h-timeline" hidden>
+    <div class="row"><h3 id="h-timeline">Timeline / Run-of-Show</h3><div class="spacer"></div>
+      <button class="primary" id="btnAddSlot" data-testid="add-slot"><svg class="icon"><use href="#ic-plus"></use></svg> Add Slot</button>
+      <button class="ghost no-print" id="btnPrintTimeline" data-testid="print-timeline" title="Print timeline"><svg class="icon"><use href="#ic-download"></use></svg> Print</button>
+    </div>
+    <div class="timeline-layout">
+      <details id="slotEditor" class="card collapsible-card slot-editor-card">
+        <summary>
+          <svg class="icon" aria-hidden="true"><use href="#ic-edit"></use></svg>
+          <span class="collapsible-title">Slot Editor</span>
+        </summary>
+        <div class="collapsible-body slot-editor-body">
+          <form id="slotForm" class="grid grid-2 gap-tight" onsubmit="return false;">
+            <input id="sId" type="hidden" data-testid="slot-id">
+            <div><div class="small">Event*</div><select id="sEvent" required data-testid="slot-event"></select></div>
+            <div><div class="small">Title*</div><input id="sTitle" required data-testid="slot-title"/></div>
+            <div><div class="small">Lane (Location)</div><input id="sLane" placeholder="e.g., Ceremony Hall" data-testid="slot-lane"/></div>
+            <div><div class="small">Start*</div><input id="sStart" type="datetime-local" required data-testid="slot-start"/></div>
+            <div><div class="small">End*</div><input id="sEnd" type="datetime-local" required data-testid="slot-end"/></div>
+            <div style="grid-column:1/-1"><div class="small">Notes</div><textarea id="sNotes" data-testid="slot-notes"></textarea></div>
+          </form>
+          <div class="row">
+            <button class="success" id="btnSaveSlot" data-testid="save-slot"><svg class="icon"><use href="#ic-save"></use></svg> Save Slot</button>
+            <button class="ghost" id="btnResetSlot" data-testid="reset-slot"><svg class="icon"><use href="#ic-refresh"></use></svg> Reset</button>
+          </div>
+          <div id="slotConflicts" class="small muted" aria-live="polite" style="margin-top:6px"></div>
+        </div>
+      </details>
+      <div class="card slots-card">
+        <div class="row"><h3>Slots</h3><div class="spacer"></div></div>
+        <div class="table-wrap" role="region" aria-label="Timeline slots">
+          <table id="tblTimeline">
+            <thead><tr>
+              <th scope="col">Event</th><th scope="col">Title</th><th scope="col">Location/Lane</th><th scope="col">Start</th><th scope="col">End</th><th scope="col">Notes</th><th scope="col" class="no-print">Actions</th>
+            </tr></thead><tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VENDORS -->
+  <section id="vendors" class="tab card" role="region" aria-labelledby="h-vendors" hidden>
+    <div class="row"><h3 id="h-vendors">Vendors</h3><div class="spacer"></div>
+      <button class="primary" id="btnAddVendor" data-testid="add-vendor"><svg class="icon"><use href="#ic-plus"></use></svg> Add Vendor</button>
+      <button class="ghost no-print" id="btnPrintVendors" data-testid="print-vendors"><svg class="icon"><use href="#ic-download"></use></svg> Print</button>
+    </div>
+    <div class="table-wrap" role="region" aria-label="Vendor sheet">
+      <table id="tblVendors">
+        <thead><tr>
+          <th scope="col">Name</th><th scope="col">Company</th><th scope="col">Role</th><th scope="col">Events</th><th scope="col">Email</th><th scope="col">Phone</th><th scope="col">Contract</th><th scope="col">Payment</th><th scope="col">Docs</th><th scope="col" class="no-print">Actions</th>
+        </tr></thead><tbody></tbody>
+      </table>
+    </div>
+    <div class="hr"></div>
+    <h3>Vendor Form</h3>
+    <form class="grid grid-4 gap-tight" onsubmit="return false;">
+      <input id="vId" type="hidden" data-testid="vendor-id">
+      <div><div class="small">Name*</div><input id="vName" required data-testid="vendor-name"/></div>
+      <div><div class="small">Company</div><input id="vCompany" data-testid="vendor-company"/></div>
+      <div><div class="small">Role</div><input id="vRole" placeholder="e.g., Catering" data-testid="vendor-role"/></div>
+      <div><div class="small">Email</div><input id="vEmail" type="email" inputmode="email" data-testid="vendor-email"/></div>
+      <div><div class="small">Phone</div><input id="vPhone" inputmode="tel" data-testid="vendor-phone"/></div>
+      <div><div class="small">Contract</div><select id="vContract" data-testid="vendor-contract"><option>Draft</option><option>Sent</option><option>Signed</option></select></div>
+      <div><div class="small">Payment</div><select id="vPayment" data-testid="vendor-payment"><option>Due</option><option>Paid</option><option>Overdue</option></select></div>
+      <div><div class="small">Docs (comma list)</div><input id="vDocs" placeholder="e.g., W9, Insurance" data-testid="vendor-docs"/></div>
+      <div style="grid-column:1 / -1;">
+        <div class="small">Linked Events</div>
+        <select id="vEvents" class="multi-select" multiple data-testid="vendor-events" aria-describedby="vendorEventsHint"></select>
+        <div id="vendorEventsHint" class="small muted">Hold Ctrl/⌘ to select multiple events.</div>
+      </div>
+    </form>
+    <div class="row" style="margin-top:10px;">
+      <button class="success" id="btnSaveVendor" data-testid="save-vendor"><svg class="icon"><use href="#ic-save"></use></svg> Save</button>
+      <button class="ghost" id="btnResetVendor" data-testid="reset-vendor"><svg class="icon"><use href="#ic-refresh"></use></svg> Reset</button>
+    </div>
+  </section>
+
+  <!-- BUDGET -->
+  <section id="budget" class="tab card" role="region" aria-labelledby="h-budget" hidden>
+    <div class="row"><h3 id="h-budget">Budget</h3><div class="spacer"></div>
+      <button class="primary" id="btnAddLine" data-testid="add-line"><svg class="icon"><use href="#ic-plus"></use></svg> Add Line</button>
+      <button class="ghost" id="btnExportCSV" data-testid="export-csv" title="Export CSV"><svg class="icon"><use href="#ic-download"></use></svg> Export CSV</button>
+    </div>
+    <div class="table-wrap" role="region" aria-label="Budget lines">
+      <table id="tblBudget">
+        <thead><tr>
+          <th scope="col">Event</th><th scope="col">Category</th><th scope="col">Item</th><th scope="col">Qty</th><th scope="col">Unit Cost</th><th scope="col">Tax %</th><th scope="col">Forecast</th><th scope="col">Actual</th><th scope="col">Variance</th><th scope="col" class="no-print">Actions</th>
+        </tr></thead><tbody></tbody>
+        <tfoot><tr>
+          <th colspan="6" scope="row">Totals</th>
+          <th id="sumForecast" aria-live="polite">0.00</th>
+          <th id="sumActual" aria-live="polite">0.00</th>
+          <th id="sumVariance" aria-live="polite">0.00</th>
+          <th></th>
+        </tr></tfoot>
+      </table>
+    </div>
+    <div class="hr"></div>
+    <h3>Budget Line Form</h3>
+    <form class="grid grid-5 gap-tight" onsubmit="return false;">
+      <input id="bId" type="hidden" data-testid="budget-id">
+      <div><div class="small">Event*</div><select id="bEvent" required data-testid="budget-event"></select></div>
+      <div><div class="small">Category*</div><input id="bCat" required placeholder="e.g., Venue" data-testid="budget-cat"/></div>
+      <div><div class="small">Item*</div><input id="bItem" required placeholder="e.g., Ballroom" data-testid="budget-item"/></div>
+      <div><div class="small">Qty</div><input id="bQty" type="number" step="1" min="0" value="1" data-testid="budget-qty"/></div>
+      <div><div class="small">Unit Cost</div><input id="bUnit" type="number" step="0.01" min="0" value="0" data-testid="budget-unit"/></div>
+      <div><div class="small">Tax %</div><input id="bTax" type="number" step="0.01" min="0" value="0" data-testid="budget-tax"/></div>
+      <div><div class="small">Forecast</div><input id="bForecast" type="number" step="0.01" min="0" value="0" data-testid="budget-forecast"/></div>
+      <div><div class="small">Actual</div><input id="bActual" type="number" step="0.01" min="0" value="0" data-testid="budget-actual"/></div>
+      <div style="grid-column:1/-1"><div class="small">Notes</div><textarea id="bNotes" data-testid="budget-notes"></textarea></div>
+    </form>
+    <div class="row" style="margin-top:10px;">
+      <button class="success" id="btnSaveLine" data-testid="save-line"><svg class="icon"><use href="#ic-save"></use></svg> Save</button>
+      <button class="ghost" id="btnResetLine" data-testid="reset-line"><svg class="icon"><use href="#ic-refresh"></use></svg> Reset</button>
+    </div>
+  </section>
+
+  <!-- TASKS -->
+  <section id="tasks" class="tab card" role="region" aria-labelledby="h-tasks" hidden>
+    <div class="row"><h3 id="h-tasks">Tasks</h3><div class="spacer"></div>
+      <button class="primary" id="btnAddTask" data-testid="add-task"><svg class="icon"><use href="#ic-plus"></use></svg> Add Task</button>
+      <div class="small muted no-print">Shortcuts: <kbd>N</kbd> new task, <kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd> move to Not Started/In Progress/Completed.</div>
+    </div>
+    <div class="kanban" role="list" aria-label="Task board">
+      <div class="col" data-col="Not Started" aria-label="Not Started" role="group"><h3><svg class="icon"><use href="#ic-calendar"></use></svg> Not Started</h3><div id="col-not-started"></div></div>
+      <div class="col" data-col="In Progress" aria-label="In Progress" role="group"><h3><svg class="icon"><use href="#ic-calendar"></use></svg> In Progress</h3><div id="col-in-progress"></div></div>
+      <div class="col" data-col="Completed" aria-label="Completed" role="group"><h3><svg class="icon"><use href="#ic-check"></use></svg> Completed</h3><div id="col-completed"></div></div>
+    </div>
+    <div class="hr"></div>
+    <div class="table-wrap" role="region" aria-label="Tasks table">
+      <table id="tblTasks"><thead><tr>
+        <th scope="col">Task</th><th scope="col">Event</th><th scope="col">Due</th><th scope="col">Assigned</th><th scope="col">Status</th><th scope="col" class="no-print">Actions</th>
+      </tr></thead><tbody></tbody></table>
+    </div>
+    <div class="hr"></div>
+    <h3>Task Form</h3>
+    <form class="grid grid-4 gap-tight" onsubmit="return false;">
+      <input id="tId" type="hidden" data-testid="task-id">
+      <div><div class="small">Event*</div><select id="tEvent" required data-testid="task-event"></select></div>
+      <div><div class="small">Title*</div><input id="tTitle" required placeholder="e.g., Book photographer" data-testid="task-title"/></div>
+      <div><div class="small">Due Date</div><input id="tDue" type="date" data-testid="task-due"/></div>
+      <div><div class="small">Assigned To</div><input id="tAssigned" placeholder="name or email" data-testid="task-assigned"/></div>
+      <div><div class="small">Status</div><select id="tStatus" data-testid="task-status"><option>Not Started</option><option>In Progress</option><option>Completed</option></select></div>
+      <div style="grid-column: 1/-1;"><div class="small">Notes</div><textarea id="tNotes" data-testid="task-notes"></textarea></div>
+    </form>
+    <div class="row" style="margin-top:10px;">
+      <button class="success" id="btnSaveTask" data-testid="save-task"><svg class="icon"><use href="#ic-save"></use></svg> Save</button>
+      <button class="ghost" id="btnResetTask" data-testid="reset-task"><svg class="icon"><use href="#ic-refresh"></use></svg> Reset</button>
+    </div>
+  </section>
+
+<!-- POST-EVENT -->
+<section id="post" class="tab card" role="region" aria-labelledby="h-post" hidden>
+  <div class="row">
+    <h3 id="h-post">Post-Event Feedback</h3>
+    <div class="spacer"></div>
+    <div class="small muted">View & edit ratings + comments for completed/ended events.</div>
+  </div>
+
+  <div class="table-wrap" role="region" aria-label="Post-event ratings">
+    <table id="tblNotes">
+      <thead>
+        <tr>
+          <th scope="col">Event</th>
+          <th scope="col">Date</th>
+          <th scope="col">Status</th>
+          <th scope="col">Rating</th>
+          <th scope="col">Comment</th>
+          <th scope="col" class="no-print">Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="hr"></div>
+  <h3>Edit Feedback</h3>
+  <form class="grid grid-4 gap-tight" onsubmit="return false;">
+    <input id="nId" type="hidden" data-testid="note-id">
+    <div style="grid-column:1 / span 2;">
+      <div class="small">Event*</div>
+      <select id="nEvent" required data-testid="note-event"></select>
+    </div>
+    <div>
+      <div class="small">Rating (1–5)*</div>
+      <input id="nRating" type="number" min="1" max="5" step="1" required data-testid="note-rating"/>
+    </div>
+    <div style="grid-column:1 / -1;">
+      <div class="small">Comment</div>
+      <textarea id="nComment" placeholder="What went well? What to improve?" data-testid="note-comment"></textarea>
+    </div>
+  </form>
+  <div class="row" style="margin-top:10px;">
+    <button class="success" id="btnSaveNote" data-testid="save-note"><svg class="icon"><use href="#ic-save"></use></svg> Save</button>
+    <button class="ghost" id="btnResetNote" data-testid="reset-note"><svg class="icon"><use href="#ic-refresh"></use></svg> Reset</button>
+  </div>
+</section>
+
+
+  <!-- MAP -->
+  <section id="map" class="tab card" role="region" aria-labelledby="h-map" hidden>
+    <div class="row"><h3 id="h-map">Venue & POIs (Map)</h3><div class="spacer"></div><div class="small">Markers follow current filters; add POIs below.</div></div>
+    <div id="leafletMap" class="map" role="application" aria-label="Map"></div>
+    <div class="hr"></div>
+    <h3>Points of Interest</h3>
+    <div class="grid grid-4 gap-tight">
+      <input id="pId" type="hidden">
+      <div style="grid-column:1 / span 2;"><div class="small">Label*</div><input id="pLabel" placeholder="e.g., Hotel A" data-testid="poi-label"/></div>
+      <div style="grid-column:3 / span 2;"><div class="small">Type</div><select id="pType" data-testid="poi-type"><option>Hotel</option><option>Parking</option><option>Vendor</option><option>Other</option></select></div>
+      <div style="grid-column:1 / span 2;"><div class="small">Event</div><select id="pEvent" data-testid="poi-event"><option value="">Unassigned</option></select></div>
+      <div class="autocomplete-wrap" style="grid-column:1 / span 4;">
+        <div class="small">Address* (type to search)</div>
+        <input id="pAddress" placeholder="Start typing an address…" autocomplete="off" data-testid="poi-address" aria-autocomplete="list" aria-controls="poiAddrList" aria-expanded="false"/>
+        <div id="poiAddrList" class="autocomplete-list" role="listbox" style="display:none;"></div>
+      </div>
+      <div style="grid-column:1 / span 2;"><div class="small">Latitude</div><input id="pLat" type="number" step="any" placeholder="auto from address" data-testid="poi-lat"/></div>
+      <div style="grid-column:3 / span 2;"><div class="small">Longitude</div><input id="pLon" type="number" step="any" placeholder="auto from address" data-testid="poi-lon"/></div>
+    </div>
+    <div class="small muted" style="margin-top:6px;">Address search by OpenStreetMap Nominatim. Select a suggestion to enable saving.</div>
+    <div class="row" style="margin-top:10px;">
+       <button class="success" id="btnAddPOI" data-testid="add-poi"><svg class="icon"><use href="#ic-plus"></use></svg> Add POI</button>
+       <button class="ghost" id="btnClearPOI" data-testid="clear-poi"><svg class="icon"><use href="#ic-trash"></use></svg> Clear POIs</button>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="settings" class="tab card" role="region" aria-labelledby="h-settings" hidden>
+    <h3 id="h-settings">Settings & Data</h3>
+    <div class="row" style="gap:8px; margin:8px 0 12px;">
+      <button id="btnExport" class="primary" data-testid="export-json"><svg class="icon"><use href="#ic-download"></use></svg> Export JSON</button>
+      <label class="pill">Import JSON <input id="fileImport" type="file" accept="application/json" style="display:none;" data-testid="import-file"></label>
+      <button id="btnImport" class="primary" data-testid="import-choose"><svg class="icon"><use href="#ic-upload"></use></svg> Choose File…</button>
+      <button id="btnSeed" class="ghost" data-testid="seed-data"><svg class="icon"><use href="#ic-refresh"></use></svg> Load Demo Data</button>
+      <button id="btnClear" class="danger" data-testid="clear-data"><svg class="icon"><use href="#ic-trash"></use></svg> Clear All Data</button>
+    </div>
+    <div class="small">Data persists in your browser (<code>localStorage</code>). Use Export/Import to share or commit JSON.</div>
+    <div class="hr"></div>
+    <div class="small muted">Keyboard: <kbd>g</kbd> then <kbd>d</kbd>/<kbd>e</kbd>/<kbd>t</kbd>/<kbd>v</kbd>/<kbd>b</kbd>/<kbd>m</kbd>/<kbd>s</kbd> to go to Dashboard/Events/Tasks/Vendors/Budget/Map/Settings.</div>
+  </section>
+</main>
+
+<script>
+/* ---------- Utils ---------- */
+const qs=(s,r=document)=>r.querySelector(s), qsa=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const fmtMoney=n=>(Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const toNumber=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
+const safe=fn=>{try{typeof fn==="function"&&fn()}catch(e){console.error(e)}};
+const todayYMD=()=>new Date().toISOString().slice(0,10);
+const parseYMD=s=>{if(!s)return null; if(/\d{4}-\d{2}-\d{2}/.test(s)){const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)} const d2=new Date(s); return isNaN(d2)?null:d2};
+const parseLocal=s=>s?new Date(s):null;
+const isBefore=(a,b)=>{const da=parseYMD(a), db=parseYMD(b); if(!da||!db) return false; return da.getTime()<db.getTime()};
+const isAfter=(a,b)=>{const da=parseYMD(a), db=parseYMD(b); if(!da||!db) return false; return da.getTime()>db.getTime()};
+const addDays=(s,n)=>{const d=parseYMD(s)||new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10)};
+const fmtDate=s=>{if(!s)return""; const d=parseYMD(s)||parseLocal(s); if(!d)return""; return d.toLocaleDateString(undefined,{day:'2-digit',month:'short',year:'numeric'})};
+const fmtDateTime=s=>{if(!s)return""; const d=parseLocal(s)||new Date(s); return d.toLocaleString(undefined,{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
+const diffInDays=(a,b)=>{const da=parseYMD(a), db=parseYMD(b); if(!da||!db) return null; const ms=da.getTime()-db.getTime(); return Math.round(ms/86400000);};
+const uid=(p="id")=>`${p}_${Math.random().toString(36).slice(2,9)}`;
+const fragment=()=>document.createDocumentFragment();
+const escapeAttr=v=>String(v??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+/* ---------- Theme ---------- */
+const THEME_KEY="epp_theme";
+function reflectThemeUI(){const isDark=document.documentElement.getAttribute("data-theme")==="dark"; qs("#themeLabel").textContent=isDark?"Dark":"Light"; const use=qs("#themeIcon use"); if(use) use.setAttribute("href",isDark?"#ic-moon":"#ic-sun"); qs("#themeToggle").setAttribute("aria-pressed",String(isDark))}
+function applyTheme(theme){const t=(theme==="dark")?"dark":"light"; document.documentElement.setAttribute("data-theme",t); localStorage.setItem(THEME_KEY,t); reflectThemeUI()}
+(function(){const saved=localStorage.getItem(THEME_KEY); if(saved){applyTheme(saved)}else{const prefersDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches; applyTheme(prefersDark?"dark":"light")}})();
+qs("#themeToggle").addEventListener("click",()=>applyTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark"));
+/* ---------- Viewport helpers ---------- */
+const MOBILE_QUERY=window.matchMedia("(max-width: 768px)");
+const reflectViewportMode=()=>{
+  document.documentElement.classList.toggle("is-mobile", MOBILE_QUERY.matches);
+};
+reflectViewportMode();
+if(typeof MOBILE_QUERY.addEventListener==="function"){MOBILE_QUERY.addEventListener("change", reflectViewportMode);}else if(typeof MOBILE_QUERY.addListener==="function"){MOBILE_QUERY.addListener(reflectViewportMode);}
+/* ---------- Accent Color (Picker) ---------- */
+const ACCENT_KEY = "epp_accent";
+
+/* helpers */
+function hexToRgb(hex){
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if(!m) return null;
+  return { r: parseInt(m[1],16), g: parseInt(m[2],16), b: parseInt(m[3],16) };
+}
+function rgbToHsl(r,g,b){
+  r/=255; g/=255; b/=255;
+  const max=Math.max(r,g,b), min=Math.min(r,g,b);
+  let h,s,l=(max+min)/2;
+  if(max===min){ h=s=0; }
+  else{
+    const d=max-min;
+    s=l>0.5 ? d/(2-max-min) : d/(max+min);
+    switch(max){
+      case r: h=(g-b)/d+(g<b?6:0); break;
+      case g: h=(b-r)/d+2; break;
+      case b: h=(r-g)/d+4; break;
+    }
+    h/=6;
+  }
+  return { h: h*360, s: s*100, l: l*100 };
+}
+function hslToRgb(h,s,l){
+  h/=360; s/=100; l/=100;
+  function hue2rgb(p,q,t){
+    if(t<0) t+=1; if(t>1) t-=1;
+    if(t<1/6) return p+(q-p)*6*t;
+    if(t<1/2) return q;
+    if(t<2/3) return p+(q-p)*(2/3 - t)*6;
+    return p;
+  }
+  let r,g,b;
+  if(s===0){ r=g=b=l; }
+  else{
+    const q = l<0.5 ? l*(1+s) : l+s - l*s;
+    const p = 2*l - q;
+    r = hue2rgb(p,q,h+1/3);
+    g = hue2rgb(p,q,h);
+    b = hue2rgb(p,q,h-1/3);
+  }
+  return { r: Math.round(r*255), g: Math.round(g*255), b: Math.round(b*255) };
+}
+function rgbToHex(r,g,b){
+  const h = (n)=>n.toString(16).padStart(2,"0");
+  return `#${h(r)}${h(g)}${h(b)}`;
+}
+function mixHex(hexA, hexB, weight=0.5){
+  const a = hexToRgb(hexA);
+  const b = hexToRgb(hexB);
+  if(!a || !b) return hexA;
+  const t = clamp(weight,0,1);
+  const mix = (ca, cb)=>Math.round(ca + (cb-ca)*t);
+  return rgbToHex(mix(a.r,b.r), mix(a.g,b.g), mix(a.b,b.b));
+}
+function hslToHex(h,s,l){
+  const {r,g,b} = hslToRgb(h,s,l);
+  return rgbToHex(r,g,b);
+}
+function withAlphaHex(hex, aa="66"){ return hex + aa.toLowerCase(); }
+
+/* build harmonious trio */
+function derivePalette(hex, theme){
+  const rgb = hexToRgb(hex) || hexToRgb("#7c3aed");
+  const base = rgbToHsl(rgb.r, rgb.g, rgb.b);
+  const isDark = (theme === "dark");
+  const h=base.h;
+  const s=Math.min(100,base.s);
+  const l=isDark?Math.min(85,base.l+6):Math.max(25,base.l);
+  const a2_l=isDark?Math.max(30,l-10):Math.max(20,l-12);
+  const a3_l=isDark?Math.min(95,l+14):Math.min(95,l+14);
+  return {
+    accent:hslToHex(h,s,l),
+    accent2:hslToHex(h,s,a2_l),
+    accent3:hslToHex(h,s,a3_l),
+    focus:withAlphaHex(hslToHex(h,s,l),"66")
+  };
+}
+
+function applyAccent(hex){
+  // theme-safe derivations
+  const r=document.documentElement;
+
+  // Remove legacy inline theme vars so CSS blocks can take over per-theme
+  [
+    "--accent","--accent-2","--accent-3","--focus","--bg","--overlay","--panel",
+    "--card","--border","--table-odd","--pill","--th-bg","--row-hover",
+    "--active-tab-bg","--ghost-bg","--glow"
+  ].forEach(name=>r.style.removeProperty(name));
+
+  // Reuse helpers already in your file
+  const base = hexToRgb(hex) || hexToRgb("#7c3aed");
+  const hsl  = rgbToHsl(base.r, base.g, base.b);
+
+  // Light-side tones (soft UI)
+  const light_accent  = hslToHex(hsl.h, Math.min(100,hsl.s), Math.max(35, Math.min(80, hsl.l)));
+  const light_accent2 = hslToHex(hsl.h, Math.min(100,hsl.s), Math.max(25, Math.min(70, hsl.l-10)));
+  const light_accent3 = hslToHex(hsl.h, Math.min(100,hsl.s), Math.min(96,  hsl.l+14));
+  const bg_soft       = hslToHex(hsl.h, 60, 98);  // page backdrop
+  const card_soft     = hslToHex(hsl.h, 55, 99);  // cards
+  const border_soft   = hslToHex(hsl.h, 45, 88);  // subtle borders
+  const table_odd     = hslToHex(hsl.h, 60, 96);  // zebra
+  const row_hover     = hslToHex(hsl.h, 65, 93);  // row hover
+  const th_bg         = hslToHex(hsl.h, 58, 95);  // table head
+  const active_tab_bg = hslToHex(hsl.h, 62, 94);  // active nav tab
+  const ghost_bg      = hslToHex(hsl.h, 35, 97);  // ghost buttons
+  const glow          = withAlphaHex(light_accent, "18"); // KPI glow ~9%
+  const kpi_surface_light = mixHex(card_soft, light_accent2, 0.35);
+  const kpi_border_light  = mixHex(border_soft, light_accent2, 0.55);
+  const kpi_heading_light = mixHex("#433278", light_accent2, 0.35);
+  const kpi_subtext_light = mixHex("#56428f", light_accent3, 0.35);
+  const kpi_value_light   = mixHex("#2c1b63", light_accent2, 0.25);
+
+  // Overlay (radials tinted by accent)
+  const ov1 = withAlphaHex(light_accent, "55");
+  const ov2 = withAlphaHex(light_accent3, "44");
+  const overlay = `radial-gradient(900px 500px at -150px -200px,${ov1},transparent 60%),
+                   radial-gradient(1000px 600px at 120% -100px,${ov2},transparent 60%), ${bg_soft}`;
+
+  // Inject/update a light theme block instead of inline vars (so dark theme can override)
+  let lightStyle=document.getElementById("dynamic-light-accent");
+  if(!lightStyle){ lightStyle=document.createElement("style"); lightStyle.id="dynamic-light-accent"; document.head.appendChild(lightStyle); }
+  lightStyle.textContent=`:root{
+    --accent:${light_accent};
+    --accent-2:${light_accent2};
+    --accent-3:${light_accent3};
+    --focus:${withAlphaHex(light_accent,"66")};
+    --bg:${bg_soft};
+    --overlay:${overlay};
+    --panel:#fff;
+    --card:${card_soft};
+    --border:${border_soft};
+    --table-odd:${table_odd};
+    --pill:${table_odd};
+    --th-bg:${th_bg};
+    --row-hover:${row_hover};
+    --active-tab-bg:${active_tab_bg};
+    --ghost-bg:${ghost_bg};
+    --glow:${glow};
+    --kpi-surface:${kpi_surface_light};
+    --kpi-border:${kpi_border_light};
+    --kpi-heading:${kpi_heading_light};
+    --kpi-subtext:${kpi_subtext_light};
+    --kpi-value:${kpi_value_light};
+  }`;
+
+  // Dark-side tones keep structure neutral but accent-aware
+  const dark_accent  = hslToHex(hsl.h, Math.min(100,hsl.s), Math.min(85, hsl.l+6));
+  const dark_accent2 = hslToHex(hsl.h, Math.min(100,hsl.s), Math.max(32,  (hsl.l+6)-14));
+  const dark_accent3 = hslToHex(hsl.h, Math.min(100,hsl.s), Math.min(96,  (hsl.l+6)+14));
+  const dov1 = withAlphaHex(dark_accent,  "20");
+  const dov2 = withAlphaHex(dark_accent3, "18");
+  const darkBase={
+    bg:"#0f172a",
+    panel:"#131c2f",
+    card:"#17213b",
+    border:"#32405b",
+    table:"#192540",
+    th:"#162033",
+    hover:"#1d2943",
+    active:"#243454",
+    ghost:"#131b2c",
+    popover:"#141c2c",
+    popoverBorder:"#334155",
+    pill:"#1d2842"
+  };
+  const tintWeights={
+    bg:0.1,
+    panel:0.08,
+    card:0.1,
+    border:0.08,
+    table:0.06,
+    th:0.06,
+    hover:0.1,
+    active:0.12,
+    ghost:0.06,
+    popover:0.08,
+    popoverBorder:0.1,
+    pill:0.12
+  };
+  const dark_bg          = mixHex(darkBase.bg,      dark_accent,  tintWeights.bg);
+  const dark_panel       = mixHex(darkBase.panel,   dark_accent2, tintWeights.panel);
+  const dark_card        = mixHex(darkBase.card,    dark_accent,  tintWeights.card);
+  const dark_border      = mixHex(darkBase.border,  dark_accent3, tintWeights.border);
+  const dark_table       = mixHex(darkBase.table,   dark_accent2, tintWeights.table);
+  const dark_th          = mixHex(darkBase.th,      dark_accent3, tintWeights.th);
+  const dark_hover       = mixHex(darkBase.hover,   dark_accent2, tintWeights.hover);
+  const dark_active_tab  = mixHex(darkBase.active,  dark_accent,  tintWeights.active);
+  const dark_ghost       = mixHex(darkBase.ghost,   dark_accent2, tintWeights.ghost);
+  const dark_popover     = mixHex(darkBase.popover, dark_accent2, tintWeights.popover);
+  const dark_popover_b   = mixHex(darkBase.popoverBorder, dark_accent3, tintWeights.popoverBorder);
+  const dark_pill        = mixHex(darkBase.pill,    dark_accent3, tintWeights.pill);
+  const dark_muted       = mixHex("#cbd5f5",        dark_accent3, 0.12);
+  const dark_placeholder = mixHex("#94a3b8",       dark_accent2, 0.12);
+  const dark_glow        = withAlphaHex(dark_accent,"22");
+  const kpi_surface_dark = mixHex(dark_card, dark_accent2, 0.28);
+  const kpi_border_dark  = mixHex(dark_border, dark_accent, 0.5);
+  const kpi_heading_dark = mixHex("#d7d9ff", dark_accent3, 0.28);
+  const kpi_subtext_dark = mixHex("#b8bdfa", dark_accent3, 0.35);
+  const kpi_value_dark   = mixHex("#f6f5ff", dark_accent3, 0.2);
+  const dark_overlay = `radial-gradient(900px 500px at -150px -200px,${dov1},transparent 60%),
+                        radial-gradient(1000px 600px at 120% -100px,${dov2},transparent 60%), ${dark_bg}`;
+  const glassRgb = hexToRgb(dark_bg);
+  const dark_glass = glassRgb ? `rgba(${glassRgb.r},${glassRgb.g},${glassRgb.b},0.72)` : "rgba(15,23,42,.72)";
+
+  // Create/replace an injected dark block so the variables flip correctly with theme
+  let darkStyle=document.getElementById("dynamic-dark-accent");
+  if(!darkStyle){ darkStyle=document.createElement("style");darkStyle.id="dynamic-dark-accent";document.head.appendChild(darkStyle); }
+  darkStyle.textContent=`[data-theme="dark"]{
+    --accent:${dark_accent};
+    --accent-2:${dark_accent2};
+    --accent-3:${dark_accent3};
+    --focus:${withAlphaHex(dark_accent,"55")};
+    --bg:${dark_bg};
+    --panel:${dark_panel};
+    --card:${dark_card};
+    --border:${dark_border};
+    --table-odd:${dark_table};
+    --th-bg:${dark_th};
+    --row-hover-dark:${dark_hover};
+    --active-tab-bg-dark:${dark_active_tab};
+    --ghost-bg-dark:${dark_ghost};
+    --pill:${dark_pill};
+    --popover:${dark_popover};
+    --popover-border:${dark_popover_b};
+    --overlay:${dark_overlay};
+    --glow:${dark_glow};
+    --kpi-surface:${kpi_surface_dark};
+    --kpi-border:${kpi_border_dark};
+    --kpi-heading:${kpi_heading_dark};
+    --kpi-subtext:${kpi_subtext_dark};
+    --kpi-value:${kpi_value_dark};
+    --glass:${dark_glass};
+    --muted:${dark_muted};
+    --placeholder:${dark_placeholder};
+  }`;
+
+  // Update the chip swatch
+  const chip=qs(".color-chip .chip-swatch");
+  if(chip) chip.style.background=hex;
+
+  localStorage.setItem(ACCENT_KEY,hex);
+}
+
+
+// --- Wire the UI: open the native color dialog, react to changes ---
+const accentBtn = qs("#accentBtn");
+const accentPicker = qs("#accentPicker");
+
+
+
+// Apply live while dragging the picker AND after closing it.
+function handleAccentChange(e){
+  const hex = (e.target.value || "").trim();
+  if (/^#([0-9a-f]{6})$/i.test(hex)) {
+    applyAccent(hex);
+  }
+}
+accentPicker?.addEventListener("input", handleAccentChange);
+accentPicker?.addEventListener("change", handleAccentChange);
+
+
+// Restore saved accent on load
+(function restoreAccent(){
+  const saved=localStorage.getItem(ACCENT_KEY);
+  if(saved&&/^#([0-9a-f]{6})$/i.test(saved)){ applyAccent(saved); }
+  else{
+    const chip=qs(".color-chip .chip-swatch");
+    if(chip){
+      const cs=getComputedStyle(document.documentElement);
+      chip.style.background=cs.getPropertyValue("--accent")?.trim()||"#7c3aed";
+    }
+  }
+})();
+
+// Keep accent harmonious when switching theme
+const _origApplyTheme=applyTheme;
+applyTheme=function(theme){
+  _origApplyTheme(theme);
+  const saved=localStorage.getItem(ACCENT_KEY);
+  if(saved&&/^#([0-9a-f]{6})$/i.test(saved)){ applyAccent(saved); }
+};
+
+/* ---------- State & Filters ---------- */
+const state={
+  filters:{ search:"", type:"", status:"", from:"", to:"", eventId:"" },
+  currentRoute:"#/dashboard",
+  currentTab:"dashboard",
+  addrPick:null,
+  poiAddrPick:null,
+  activeKPI:"upcoming",
+  kpiDetails:{},
+  lastKpiTrigger:null,
+  editingEventId:null,
+  graph:null
+};
+let eventAddrAuto=null;
+let poiAddrAuto=null;
+/* ---------- Router (hash) ---------- */
+const ROUTES=["#/dashboard","#/analysis","#/events","#/timeline","#/vendors","#/budget","#/tasks","#/map","#/settings","#/post"];
+function navigate(hash){
+  const h=ROUTES.includes(hash)?hash:"#/dashboard";
+  if(location.hash!==h) location.hash=h;
+
+  // show active view
+  qsa(".tab").forEach(el=>el.hidden=true);
+  const id=h.slice(2);
+  state.currentRoute=h;              // keep both for legacy checks
+  state.currentTab=id;               // <-- FIX: used by map refresh checks
+  const el=qs("#"+id); if(el) el.hidden=false;
+
+  // nav active
+  qsa('nav .tab-btn').forEach(b=>b.setAttribute("aria-current",b.getAttribute("data-route")===h?"page":"false"));
+
+  renderAll();
+  if(id==="map") setTimeout(()=>safe(renderMap),50);
+}
+window.addEventListener("hashchange",()=>navigate(location.hash||"#/dashboard"));
+qsa('nav .tab-btn').forEach(btn=>btn.addEventListener("click",()=>navigate(btn.getAttribute("data-route"))));
+
+// ---------- Global Scope Selector ----------
+qs("#scopeEvent")?.addEventListener("change", (e)=>{
+  state.filters.eventId = e.target.value || "";
+  renderAll();
+  if (state.currentTab === "map") safe(renderMap);
+});
+
+/* ---------- Store ---------- */
+const LS_KEY="epp_data_v1";
+const store={data:{events:[],tasks:[],notes:[],timeline:[],vendors:[],budget:[],pois:[]},
+  load(){try{const raw=localStorage.getItem(LS_KEY); if(raw) this.data=JSON.parse(raw)}catch(e){console.error(e)}},
+  save(){localStorage.setItem(LS_KEY,JSON.stringify(this.data))},
+  reset(){this.data={events:[],tasks:[],notes:[],timeline:[],vendors:[],budget:[],pois:[]}; this.save()},
+  upsert(col,obj){if(!obj.id){obj.id=uid(col.slice(0,3))} const a=this.data[col], i=a.findIndex(x=>x.id===obj.id); if(i>=0)a[i]=obj; else a.push(obj); this.save(); return obj.id},
+  remove(col,id){this.data[col]=this.data[col].filter(x=>x.id!==id); this.save()}
+};
+function seedDemo(){
+  const t=todayYMD();
+  const ev=[
+    { id:uid("evt"), title:"Martínez Wedding", eventType:"Wedding", eventDate:addDays(t,30), address:"Zócalo, Centro, Ciudad de México", status:"Planning", owner:"laura@yourorg.com", lat:19.4326, lon:-99.1332 },
+    { id:uid("evt"), title:"García Baptism", eventType:"Baptism", eventDate:addDays(t,18), address:"Catedral de Guadalajara, Jalisco", status:"Planning", owner:"diego@yourorg.com", lat:20.6769, lon:-103.3466 },
+    { id:uid("evt"), title:"Fernández Anniversary Party", eventType:"Party", eventDate:addDays(t,7), address:"Macroplaza, Monterrey, NL", status:"Executing", owner:"ana@yourorg.com", lat:25.6714, lon:-100.309 }
+  ];
+  const tasks=[
+    { id:uid("tsk"), eventId:ev[0].id, title:"Confirm venue", dueDate:addDays(t,3), assignedTo:"Carlos", status:"In Progress", completedDate:"", notes:"Awaiting deposit" },
+    { id:uid("tsk"), eventId:ev[0].id, title:"Photographer booking", dueDate:addDays(t,5), assignedTo:"Maria", status:"Not Started", completedDate:"", notes:"" },
+    { id:uid("tsk"), eventId:ev[1].id, title:"Catering menu", dueDate:addDays(t,-1), assignedTo:"Diego", status:"Not Started", completedDate:"", notes:"" },
+    { id:uid("tsk"), eventId:ev[2].id, title:"Hire DJ", dueDate:addDays(t,2), assignedTo:"Ana", status:"Not Started", completedDate:"", notes:"" }
+  ];
+  const timeline=[
+    { id:uid("slt"), eventId:ev[0].id, title:"Rehearsal", lane:"Ceremony Hall", start:addDays(t,29)+"T17:00", end:addDays(t,29)+"T18:00", notes:"With officiant" },
+    { id:uid("slt"), eventId:ev[0].id, title:"Ceremony", lane:"Ceremony Hall", start:addDays(t,30)+"T15:00", end:addDays(t,30)+"T16:00", notes:"Seats 150" },
+    { id:uid("slt"), eventId:ev[2].id, title:"Soundcheck", lane:"Ballroom", start:addDays(t,7)+"T12:00", end:addDays(t,7)+"T13:00", notes:"Band + DJ" }
+  ];
+  const vendors=[
+    { id:uid("ven"), name:"Luna Catering", company:"Luna SA", role:"Catering", email:"sales@luna.mx", phone:"+52 55 0000 0000", contract:"Sent", payment:"Due", docs:"Insurance,W9", events:[ev[0].id, ev[2].id] },
+    { id:uid("ven"), name:"FotoPro MX", company:"FotoPro", role:"Photography", email:"info@fotopro.mx", phone:"+52 33 1111 2222", contract:"Signed", payment:"Paid", docs:"Contract", events:[ev[0].id] }
+  ];
+  const budget=[
+    { id:uid("bud"), eventId:ev[0].id, cat:"Venue", item:"Hall Rental", qty:1, unit:25000, tax:16, forecast:29000, actual:0, notes:"Includes chairs" },
+    { id:uid("bud"), eventId:ev[0].id, cat:"Catering", item:"Dinner", qty:120, unit:550, tax:16, forecast:0, actual:0, notes:"3-course" },
+    { id:uid("bud"), eventId:ev[2].id, cat:"Music", item:"DJ Package", qty:1, unit:8000, tax:0, forecast:8000, actual:0, notes:"" }
+  ];
+  const pois=[
+    { id:uid("poi"), label:"Hotel Centro", type:"Hotel", lat:19.434, lon:-99.14, address:"Hotel Centro Histórico, Ciudad de México", eventId:ev[0].id },
+    { id:uid("poi"), label:"Parking P1", type:"Parking", lat:19.431, lon:-99.129, address:"Estacionamiento Pino Suárez, Ciudad de México", eventId:ev[0].id }
+  ];
+  store.data={events:ev,tasks,notes:[],timeline,vendors,budget,pois};
+  store.save();
+}
+
+
+
+function onFilterChange(){
+  state.filters.search = qs("#fSearch")?.value.trim() || "";
+  state.filters.type   = qs("#fType")?.value || "";
+  state.filters.status = qs("#fStatus")?.value || "";
+  state.filters.from   = qs("#fFrom")?.value || "";
+  state.filters.to     = qs("#fTo")?.value || "";
+  renderAll();
+  if (state.currentTab === "map") safe(renderMap);
+}
+
+["#fSearch","#fType","#fStatus","#fFrom","#fTo"].forEach(sel=>{
+  const el=qs(sel); if(el) el.addEventListener("input", onFilterChange);
+});
+qs("#btnClearFilters")?.addEventListener("click", ()=>{
+  ["fSearch","fType","fStatus","fFrom","fTo"].forEach(id=>{ const el=qs("#"+id); if(el) el.value="" });
+  onFilterChange();
+ // ---- Also clear global scope and search ----
+  state.filters.eventId = "";
+  const sel = qs("#scopeEvent"); if(sel) sel.value = "";
+  const gs = qs("#globalSearch"); if(gs) gs.value = "";
+  renderAll();
+  if (state.currentTab === "map") safe(renderMap);
+});
+
+function filteredEvents(){
+  const f=state.filters;
+  return store.data.events
+    .filter(e=>{
+      if(f.type && e.eventType!==f.type) return false;
+      if(f.status && e.status!==f.status) return false;
+      if(f.search){
+        const s=f.search.toLowerCase();
+        if(!(e.title||"").toLowerCase().includes(s) && !(e.address||"").toLowerCase().includes(s)) return false;
+      }
+      if(f.from && isBefore(e.eventDate, f.from)) return false;
+      if(f.to && isAfter(e.eventDate, f.to)) return false;
+      if(f.eventId && e.id !== f.eventId) return false;
+      return true;
+
+    })
+    .sort((a,b)=> (a.eventDate||"").localeCompare(b.eventDate||""));
+}
+
+/* ---------- Data Graph (cross-linked view) ---------- */
+function buildDataGraph({ scopeIds=new Set(), scopedEvents=[] }={}){
+  const events=Array.isArray(store.data.events)?store.data.events:[];
+  const eventsById=new Map(events.map(ev=>[ev.id,ev]));
+  const contexts=new Map();
+  const orphans={ tasks:[], timeline:[], budget:[], notes:[], vendorLinks:[], pois:[] };
+  const unlinkedVendors=[];
+  const ensureContext=(eventId)=>{
+    if(!eventId) return null;
+    if(!contexts.has(eventId)){
+      const ctxEvent=eventsById.get(eventId)||null;
+      contexts.set(eventId,{
+        event:ctxEvent,
+        tasks:[],
+        timeline:[],
+        budget:[],
+        notes:[],
+        vendors:[],
+        pois:[],
+        metrics:{
+          tasks:{ total:0, completed:0, overdue:0, completionPercent:0, nextDue:null },
+          budget:{ forecast:0, actual:0, variance:0 },
+          nextSlot:null,
+          connectionScore:0
+        }
+      });
+    }
+    return contexts.get(eventId);
+  };
+
+  events.forEach(ev=>ensureContext(ev.id));
+
+  const scopeSet=new Set(scopeIds||[]);
+  const scopedList=Array.isArray(scopedEvents)?scopedEvents.slice():events.slice();
+  const today=todayYMD();
+  const nowIso=new Date().toISOString();
+
+  let scopedTaskTotal=0;
+  let scopedTaskCompleted=0;
+  const scopedOverdueTasks=[];
+  const scopedPendingTasks=[];
+
+  (store.data.tasks||[]).forEach(task=>{
+    if(!task) return;
+    if(!task.eventId || !eventsById.has(task.eventId)){
+      orphans.tasks.push(task);
+      return;
+    }
+    const ctx=ensureContext(task.eventId);
+    if(!ctx) return;
+    ctx.tasks.push(task);
+    if(scopeSet.has(task.eventId)){
+      scopedTaskTotal+=1;
+      if(task.status==="Completed"){
+        scopedTaskCompleted+=1;
+      }else{
+        if(task.dueDate && isBefore(task.dueDate, today)){
+          scopedOverdueTasks.push({ task, event:ctx.event });
+        }else{
+          scopedPendingTasks.push({ task, event:ctx.event });
+        }
+      }
+    }
+  });
+
+  contexts.forEach(ctx=>{
+    const tasks=ctx.tasks;
+    const total=tasks.length;
+    const completed=tasks.filter(t=>t.status==="Completed").length;
+    const overdue=tasks.filter(t=>t.status!=="Completed" && t.dueDate && isBefore(t.dueDate, today)).length;
+    const nextDue=tasks
+      .filter(t=>t.status!=="Completed")
+      .sort((a,b)=> (a.dueDate||"9999-12-31").localeCompare(b.dueDate||"9999-12-31"))[0]||null;
+    ctx.metrics.tasks={
+      total,
+      completed,
+      overdue,
+      completionPercent: total?Math.round((completed/total)*100):0,
+      nextDue
+    };
+  });
+
+  scopedOverdueTasks.sort((a,b)=> (a.task.dueDate||"").localeCompare(b.task.dueDate||""));
+  scopedPendingTasks.sort((a,b)=> (a.task.dueDate||"9999-12-31").localeCompare(b.task.dueDate||"9999-12-31"));
+  const dueSoon=scopedPendingTasks.filter(entry=>{
+    const due=entry.task?.dueDate;
+    const diff=diffInDays(due, today);
+    return diff!==null && diff>=0 && diff<=7;
+  });
+
+  (store.data.timeline||[]).forEach(slot=>{
+    if(!slot) return;
+    if(!slot.eventId || !eventsById.has(slot.eventId)){
+      orphans.timeline.push(slot);
+      return;
+    }
+    const ctx=ensureContext(slot.eventId);
+    if(!ctx) return;
+    ctx.timeline.push(slot);
+  });
+  contexts.forEach(ctx=>{
+    ctx.timeline.sort((a,b)=> (a.start||"").localeCompare(b.start||""));
+    const upcoming=ctx.timeline.find(s=> (s.start||"")>=nowIso);
+    ctx.metrics.nextSlot=upcoming || ctx.timeline[0] || null;
+  });
+
+  (store.data.budget||[]).forEach(line=>{
+    if(!line) return;
+    if(!line.eventId || !eventsById.has(line.eventId)){
+      orphans.budget.push(line);
+      return;
+    }
+    const ctx=ensureContext(line.eventId);
+    if(!ctx) return;
+    ctx.budget.push(line);
+  });
+  contexts.forEach(ctx=>{
+    let forecast=0, actual=0;
+    ctx.budget.forEach(line=>{
+      const fc=toNumber(line.forecast) || (toNumber(line.qty)*toNumber(line.unit)*(1+toNumber(line.tax)/100));
+      const act=toNumber(line.actual);
+      forecast+=fc;
+      actual+=act;
+    });
+    ctx.metrics.budget={ forecast, actual, variance:actual-forecast };
+  });
+
+  (store.data.notes||[]).forEach(note=>{
+    if(!note) return;
+    if(!note.eventId || !eventsById.has(note.eventId)){
+      orphans.notes.push(note);
+      return;
+    }
+    const ctx=ensureContext(note.eventId);
+    if(!ctx) return;
+    ctx.notes.push(note);
+  });
+
+  const vendorAssignments=[];
+  (store.data.vendors||[]).forEach(vendor=>{
+    const assigned=Array.isArray(vendor.events)?vendor.events.filter(Boolean):[];
+    if(!assigned.length){
+      unlinkedVendors.push(vendor);
+    }
+    assigned.forEach(eventId=>{
+      if(!eventsById.has(eventId)){
+        orphans.vendorLinks.push({ vendor, eventId });
+        return;
+      }
+      const ctx=ensureContext(eventId);
+      if(!ctx) return;
+      ctx.vendors.push(vendor);
+      vendorAssignments.push({ vendor, event:eventsById.get(eventId)||null });
+    });
+  });
+
+  (store.data.pois||[]).forEach(poi=>{
+    if(!poi) return;
+    if(!poi.eventId || !eventsById.has(poi.eventId)){
+      orphans.pois.push(poi);
+      return;
+    }
+    const ctx=ensureContext(poi.eventId);
+    if(!ctx) return;
+    ctx.pois.push(poi);
+  });
+
+  const scopedRatingsEntries=[];
+  (store.data.notes||[]).forEach(note=>{
+    if(!note || !note.eventId) return;
+    if(!scopeSet.has(note.eventId)) return;
+    const ev=eventsById.get(note.eventId);
+    if(!eventHasEnded(ev, today)) return;
+    const rating=Number(note.rating);
+    if(!Number.isFinite(rating)) return;
+    scopedRatingsEntries.push({ note, event:ev, rating });
+  });
+  const avgRating=scopedRatingsEntries.length
+    ? scopedRatingsEntries.reduce((sum,entry)=>sum+entry.rating,0)/scopedRatingsEntries.length
+    : 0;
+
+  const upcomingList=(scopedList||[])
+    .filter(ev=>ev && ev.eventDate && !isBefore(ev.eventDate, today))
+    .sort((a,b)=>(a.eventDate||"").localeCompare(b.eventDate||""));
+
+  contexts.forEach(ctx=>{
+    const tasks=ctx.metrics.tasks||{ total:0, completed:0 };
+    const vendorsCount=ctx.vendors.length;
+    const timelineCount=ctx.timeline.length;
+    const budgetCount=ctx.budget.length;
+    const notesCount=ctx.notes.length;
+    const poiCount=ctx.pois.length;
+    ctx.metrics.connectionScore = tasks.total*2 + vendorsCount*3 + timelineCount*2 + budgetCount + notesCount + poiCount;
+  });
+
+  const eventsWithout={ tasks:[], timeline:[], budget:[], vendors:[], notes:[], pois:[] };
+  const eventsMissingLocation=[];
+  const eventsMissingOwner=[];
+  const fullyLinkedEvents=[];
+  contexts.forEach(ctx=>{
+    const ev=ctx.event;
+    if(!ev) return;
+    if(!ctx.tasks.length) eventsWithout.tasks.push(ev);
+    if(!ctx.timeline.length) eventsWithout.timeline.push(ev);
+    if(!ctx.budget.length) eventsWithout.budget.push(ev);
+    if(!ctx.vendors.length) eventsWithout.vendors.push(ev);
+    if(!ctx.notes.length) eventsWithout.notes.push(ev);
+    if(!ctx.pois.length) eventsWithout.pois.push(ev);
+    const latRaw=ev.lat;
+    const lonRaw=ev.lon;
+    const hasLat=latRaw!=="" && latRaw!==null && latRaw!==undefined && Number.isFinite(Number(latRaw));
+    const hasLon=lonRaw!=="" && lonRaw!==null && lonRaw!==undefined && Number.isFinite(Number(lonRaw));
+    if(!(hasLat && hasLon)) eventsMissingLocation.push(ev);
+    if(!(ev.owner && ev.owner.trim())) eventsMissingOwner.push(ev);
+    if(ctx.tasks.length && ctx.timeline.length && ctx.budget.length && ctx.vendors.length && hasLat && hasLon){
+      fullyLinkedEvents.push(ev);
+    }
+  });
+
+  return {
+    eventsById,
+    contexts,
+    scopeIds:scopeSet,
+    scopedEvents:scopedList,
+    scoped:{
+      tasks:{
+        total:scopedTaskTotal,
+        completed:scopedTaskCompleted,
+        completionPercent:scopedTaskTotal?Math.round((scopedTaskCompleted/scopedTaskTotal)*100):0,
+        overdueCount:scopedOverdueTasks.length,
+        overdueList:scopedOverdueTasks,
+        dueSoonList:dueSoon,
+        pendingList:scopedPendingTasks
+      },
+      events:{ upcomingList },
+      ratings:{ average:avgRating, entries:scopedRatingsEntries }
+    },
+    vendorAssignments,
+    eventsWithout,
+    eventsMissingLocation,
+    eventsMissingOwner,
+    fullyLinkedEvents,
+    orphans,
+    unlinkedVendors
+  };
+}
+
+/* ---------- Renderers: KPIs & Helpers ---------- */
+function eventHasEnded(ev, nowYMD=todayYMD()){
+  if(!ev) return false;
+  if((ev.status||"").toLowerCase()==="completed") return true;
+  if(!ev.eventDate) return false;
+  return !isAfter(ev.eventDate, nowYMD);
+}
+
+function buildKpiList(items){
+  const list=document.createElement("ul");
+  list.className="kpi-list";
+  items.forEach(item=>{
+    const li=document.createElement("li");
+    if(item.primary){
+      const primary=document.createElement("div");
+      primary.className="primary";
+      primary.textContent=item.primary;
+      li.appendChild(primary);
+    }
+    [item.secondary,item.meta].filter(Boolean).forEach(text=>{
+      const line=document.createElement("div");
+      line.className="secondary";
+      line.textContent=text;
+      li.appendChild(line);
+    });
+    list.appendChild(li);
+  });
+  return list;
+}
+
+function updateKpiAria(active){
+  qsa('.kpi-trigger').forEach(btn=>{
+    const isActive=btn.dataset.kpi===active;
+    btn.setAttribute('aria-expanded', isActive ? 'true':'false');
+  });
+}
+
+function closeKpiDetail(){
+  const panel=qs('#kpiDetailPanel');
+  if(panel){ panel.hidden=true; }
+  state.activeKPI=null;
+  updateKpiAria(null);
+}
+
+function showKpiDetail(key){
+  const detail=state.kpiDetails?.[key];
+  const panel=qs('#kpiDetailPanel');
+  const title=qs('#kpiDetailTitle');
+  const body=qs('#kpiDetailBody');
+  if(!(panel&&title&&body&&detail)){
+    closeKpiDetail();
+    return;
+  }
+  body.innerHTML="";
+  if(detail.intro){
+    const p=document.createElement("p");
+    p.textContent=detail.intro;
+    body.appendChild(p);
+  }
+  if(Array.isArray(detail.items)&&detail.items.length){
+    body.appendChild(buildKpiList(detail.items));
+  }
+  if(detail.footer){
+    const foot=document.createElement("p");
+    foot.className="small";
+    foot.textContent=detail.footer;
+    body.appendChild(foot);
+  }
+  title.textContent=detail.title;
+  panel.hidden=false;
+  const trigger=qs(`.kpi-trigger[data-kpi="${key}"]`);
+  if(trigger) state.lastKpiTrigger=trigger;
+  state.activeKPI=key;
+  updateKpiAria(key);
+}
+
+
+
+function renderKPIs(){
+  const elU=qs("#kpiUpcoming"), elC=qs("#kpiCompletion"), elO=qs("#kpiOverdue"), elR=qs("#kpiRating");
+  const summaryU=qs("#kpiUpcomingSummary"), summaryC=qs("#kpiCompletionSummary"), summaryO=qs("#kpiOverdueSummary"), summaryR=qs("#kpiRatingSummary");
+  if(!(elU&&elC&&elO&&elR&&summaryU&&summaryC&&summaryO&&summaryR)) return;
+
+  const graph=state.graph;
+  if(!graph){
+    elU.textContent="0";
+    elC.textContent="0%";
+    elO.textContent="0";
+    elR.textContent="0.00";
+    summaryU.textContent="No upcoming events";
+    summaryC.textContent="No tasks yet";
+    summaryO.textContent="All caught up";
+    summaryR.textContent="No ratings yet";
+    state.kpiDetails={};
+    return;
+  }
+
+  const scopedTasks=graph.scoped?.tasks||{ total:0, completed:0, completionPercent:0, overdueCount:0, overdueList:[], dueSoonList:[], pendingList:[] };
+  const upcomingList=graph.scoped?.events?.upcomingList||[];
+  const ratingsEntries=graph.scoped?.ratings?.entries||[];
+  const avgRating=graph.scoped?.ratings?.average||0;
+  const contextsInScope=Array.from(graph.contexts.values()).filter(ctx=>ctx?.event && graph.scopeIds.has(ctx.event.id));
+  const overdueList=scopedTasks.overdueList||[];
+  const dueSoonList=scopedTasks.dueSoonList||[];
+
+  elU.textContent=String(upcomingList.length);
+  elC.textContent=`${scopedTasks.completionPercent||0}%`;
+  elO.textContent=String(scopedTasks.overdueCount||0);
+  elR.textContent=avgRating.toFixed(2);
+
+  if(upcomingList.length){
+    const next=upcomingList[0];
+    const nextTitle=(next.title||"Untitled event").trim()||"Untitled event";
+    summaryU.textContent=next.eventDate?`Next: ${nextTitle} • ${fmtDate(next.eventDate)}`:`Next: ${nextTitle}`;
+  }else{
+    summaryU.textContent="No upcoming events";
+  }
+
+  if(scopedTasks.total){
+    const dueSoonText=dueSoonList.length?` • ${dueSoonList.length} due soon`:"";
+    summaryC.textContent=`${scopedTasks.completed}/${scopedTasks.total} done (${scopedTasks.completionPercent}%)${dueSoonText}`;
+  }else{
+    summaryC.textContent="No tasks yet";
+  }
+
+  if(overdueList.length){
+    const nextOverdue=overdueList[0];
+    const dueText=nextOverdue.task?.dueDate?fmtDate(nextOverdue.task.dueDate):"Due date TBD";
+    summaryO.textContent=`${overdueList.length} overdue • Next ${dueText}`;
+  }else{
+    summaryO.textContent="All caught up";
+  }
+
+  if(ratingsEntries.length){
+    summaryR.textContent=`Based on ${ratingsEntries.length} rating${ratingsEntries.length===1?"":"s"}`;
+  }else{
+    summaryR.textContent="No ratings yet";
+  }
+
+  const detailMap={};
+
+  detailMap.upcoming={
+    title:"Upcoming Events",
+    intro:upcomingList.length?`${upcomingList.length} upcoming event${upcomingList.length===1?"":"s"} in scope.`:"No upcoming events.",
+    items:upcomingList.slice(0,8).map(ev=>{
+      const title=(ev?.title||"Untitled event").trim()||"Untitled event";
+      const secondary=ev?.eventDate?fmtDate(ev.eventDate):"Date TBD";
+      const metaParts=[];
+      if(ev?.eventType) metaParts.push(ev.eventType);
+      if(ev?.address) metaParts.push(ev.address);
+      if(ev?.owner) metaParts.push(`Owner: ${ev.owner}`);
+      return { primary:title, secondary, meta:metaParts.join(" • ")||null };
+    })
+  };
+
+  const completionItems=contextsInScope
+    .map(ctx=>{
+      const t=ctx.metrics?.tasks||{ total:0, completed:0, completionPercent:0, nextDue:null };
+      const title=(ctx.event?.title||"Untitled event").trim()||"Untitled event";
+      const secondary=t.total?`${t.completed}/${t.total} tasks • ${t.completionPercent}%`:"No tasks yet";
+      let meta="No open tasks";
+      if(t.total && t.completed<t.total){
+        meta=t.nextDue?.dueDate?`Next due ${fmtDate(t.nextDue.dueDate)}`:"Remaining tasks without due dates";
+      }
+      return { primary:title, secondary, meta };
+    })
+    .sort((a,b)=>a.primary.localeCompare(b.primary));
+
+  detailMap.completion={
+    title:"Task Completion",
+    intro:scopedTasks.total?`${scopedTasks.completed} of ${scopedTasks.total} tasks completed (${scopedTasks.completionPercent}%).`:"No tasks recorded yet.",
+    items:completionItems,
+    footer:dueSoonList.length?`${dueSoonList.length} task${dueSoonList.length===1?"":"s"} due within 7 days.`:undefined
+  };
+
+  const overdueItems=overdueList.slice(0,8).map(({task,event})=>{
+    const eventTitle=(event?.title||"Unknown event").trim()||"Unknown event";
+    const taskTitle=(task?.title||"Task").trim()||"Task";
+    const owner=(task?.assignedTo||"Unassigned").trim()||"Unassigned";
+    const due=task?.dueDate?fmtDate(task.dueDate):"Due date TBD";
+    return { primary:taskTitle, secondary:`${eventTitle} • ${owner}`, meta:`Due ${due}` };
+  });
+  detailMap.overdue={
+    title:"Overdue Tasks",
+    intro:overdueList.length?`${overdueList.length} overdue task${overdueList.length===1?"":"s"} across current filters.`:"No overdue tasks.",
+    items:overdueItems
+  };
+
+  const ratingItems=ratingsEntries.slice(0,8).map(entry=>{
+    const evTitle=(entry.event?.title||"Event").trim()||"Event";
+    const comment=(entry.note?.comment||"").split("\\n")[0];
+    const metaParts=[];
+    if(entry.event?.eventDate) metaParts.push(fmtDate(entry.event.eventDate));
+    if(entry.event?.owner) metaParts.push(`Owner: ${entry.event.owner}`);
+    return {
+      primary:`${evTitle} — ${entry.rating.toFixed(1)}`,
+      secondary:comment||null,
+      meta:metaParts.join(" • ")||null
+    };
+  });
+  detailMap.rating={
+    title:"Event Ratings",
+    intro:ratingsEntries.length?`Average rating ${avgRating.toFixed(2)} across ${ratingsEntries.length} event${ratingsEntries.length===1?"":"s"}.`:"No post-event ratings captured yet.",
+    items:ratingItems
+  };
+
+  state.kpiDetails=detailMap;
+
+  if(state.activeKPI && detailMap[state.activeKPI]){
+    showKpiDetail(state.activeKPI);
+  }else if(state.activeKPI){
+    closeKpiDetail();
+  }else{
+    updateKpiAria(null);
+  }
+}
+
+
+function setupKpiInteractions(){
+  qsa('.kpi-trigger').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const key=btn.dataset.kpi;
+      if(!key) return;
+      state.lastKpiTrigger=btn;
+      if(state.activeKPI===key){
+        closeKpiDetail();
+      }else{
+        showKpiDetail(key);
+      }
+    });
+  });
+  qs('#kpiDetailClose')?.addEventListener('click',()=>{
+    closeKpiDetail();
+    state.lastKpiTrigger?.focus();
+    state.lastKpiTrigger=null;
+  });
+}
+setupKpiInteractions();
+function fillEventScope(){
+  const sel = qs("#scopeEvent"); if(!sel) return;
+  const keep = state.filters.eventId || "";
+  const evs = (store.data.events||[]).slice().sort((a,b)=>a.title.localeCompare(b.title));
+  sel.innerHTML = `<option value="">All events</option>`;
+  evs.forEach(e=>{
+    const o = document.createElement("option");
+    o.value = e.id;
+    o.textContent = `${e.title} — ${fmtDate(e.eventDate)}`;
+    if(e.id===keep) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+function fillEventSelectors(){
+  const evsAll = store.data.events.slice().sort((a,b)=>a.title.localeCompare(b.title));
+  const selects=["#tEvent","#sEvent","#bEvent"].map(q=>qs(q)).filter(Boolean);
+  selects.forEach(sel=>{
+    const keep=sel.value;
+    sel.innerHTML="";
+    evsAll.forEach(e=>{
+      const o=document.createElement("option");
+      o.value=e.id; o.textContent=e.title;
+      if(e.id===keep) o.selected=true;
+      sel.appendChild(o);
+    });
+  });
+
+  const vendorSel=qs("#vEvents");
+  if(vendorSel){
+    const keep=new Set(Array.from(vendorSel.selectedOptions||[]).map(opt=>opt.value));
+    vendorSel.innerHTML="";
+    evsAll.forEach(e=>{
+      const o=document.createElement("option");
+      o.value=e.id;
+      o.textContent=e.title;
+      if(keep.has(e.id)) o.selected=true;
+      vendorSel.appendChild(o);
+    });
+  }
+
+  const poiSel=qs("#pEvent");
+  if(poiSel){
+    const keep=poiSel.value;
+    poiSel.innerHTML="";
+    const base=document.createElement("option");
+    base.value="";
+    base.textContent="Unassigned";
+    poiSel.appendChild(base);
+    evsAll.forEach(e=>{
+      const o=document.createElement("option");
+      o.value=e.id;
+      o.textContent=e.title;
+      if(e.id===keep) o.selected=true;
+      poiSel.appendChild(o);
+    });
+  }
+
+  // Post-Event selector: only events that have ended (by date) or are marked Completed
+  const ended = evsAll.filter(e=>eventHasEnded(e));
+  const nSel = qs("#nEvent");
+  if (nSel) {
+    const keep = nSel.value;
+    nSel.innerHTML = "";
+    ended.forEach(e=>{
+      const o=document.createElement("option");
+      o.value=e.id;
+      o.textContent = `${e.title} — ${fmtDate(e.eventDate)}`;
+      if(e.id===keep) o.selected=true;
+      nSel.appendChild(o);
+    });
+  }
+}
+
+/* ---------- Dashboard tables ---------- */
+function renderDashEvents(){
+  const tbody=qs("#tblDashEvents tbody"); if(!tbody) return; tbody.innerHTML="";
+  const frag=fragment();
+  filteredEvents().slice(0,12).forEach(e=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${e.title}</td><td>${e.eventType}</td><td>${fmtDate(e.eventDate)}</td><td>${e.address||""}</td><td><span class="status ${e.status==='Planning'?'s-planning':e.status==='Executing'?'s-executing':'s-completed'}">${e.status}</span></td><td>${e.owner||""}</td>`;
+    frag.appendChild(tr);
+  });
+  tbody.appendChild(frag);
+}
+function isTaskOverdue(t){ if(t.status==="Completed"||!t.dueDate) return false; return isBefore(t.dueDate, todayYMD()) }
+function renderDashTasks(){
+  const tbody=qs("#tblDashTasks tbody"); if(!tbody) return; tbody.innerHTML="";
+  const fIds = new Set(filteredEvents().map(e=>e.id));
+  const tasks = store.data.tasks.filter(t=>fIds.has(t.eventId) && t.status!=="Completed")
+    .sort((a,b)=>(a.dueDate||"9999-12-31").localeCompare(b.dueDate||"9999-12-31")).slice(0,12);
+  const frag=fragment();
+  const eventsById=state.graph?.eventsById || new Map();
+  tasks.forEach(t=>{
+    const ev=eventsById.get(t.eventId);
+    const overdue=isTaskOverdue(t);
+    const stClass=t.status==="Completed"?"s-completed":t.status==="In Progress"?"s-executing":overdue?"s-overdue":"";
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${t.title}</td><td>${ev?ev.title:""}</td><td>${t.assignedTo||""}</td><td>${fmtDate(t.dueDate)}</td><td><span class="status ${stClass}">${overdue?'Overdue':t.status}</span></td><td class="row no-print"><button class="ghost" title="Complete" onclick="completeTask('${t.id}')"><svg class="icon"><use href="#ic-check"></use></svg></button><button class="ghost" title="Edit" onclick="editTask('${t.id}')"><svg class="icon"><use href="#ic-edit"></use></svg></button></td>`;
+    frag.appendChild(tr);
+  });
+  tbody.appendChild(frag);
+}
+
+function renderEventConnectivity(){
+  const container=qs("#eventConnectivity");
+  if(!container) return;
+  container.innerHTML="";
+
+  const graph=state.graph;
+  if(!graph){
+    container.innerHTML='<p class="relationship-empty">Connectivity insights appear once data is available.</p>';
+    return;
+  }
+
+  const contexts=Array.from(graph.contexts.values()).filter(ctx=>ctx?.event && graph.scopeIds.has(ctx.event.id));
+  if(!contexts.length){
+    container.innerHTML='<p class="relationship-empty">No events match the current filters.</p>';
+    return;
+  }
+
+  const items=contexts.map(ctx=>{
+    const tasks=ctx.metrics?.tasks||{ total:0, completed:0, completionPercent:0 };
+    const budget=ctx.metrics?.budget||{ forecast:0, actual:0 };
+    return {
+      event:ctx.event,
+      tasks,
+      budget,
+      vendors:Array.isArray(ctx.vendors)?ctx.vendors:[],
+      timelineCount:Array.isArray(ctx.timeline)?ctx.timeline.length:0,
+      poiCount:Array.isArray(ctx.pois)?ctx.pois.length:0,
+      nextSlot:ctx.metrics?.nextSlot||null,
+      score:ctx.metrics?.connectionScore||0
+    };
+  }).filter(item=>item.event);
+
+  if(!items.length){
+    container.innerHTML='<p class="relationship-empty">Link tasks, vendors, budgets, or timeline items to events to build insights.</p>';
+    return;
+  }
+
+  items.sort((a,b)=>b.score - a.score || (a.event.title||"").localeCompare(b.event.title||""));
+  const topItems=items.slice(0,4);
+  const frag=fragment();
+
+  topItems.forEach(item=>{
+    const card=document.createElement("article");
+    card.className="relationship-item";
+    const eventTitle=escapeAttr(item.event.title||"Untitled event");
+    const eventMetaParts=[];
+    if(item.event.eventDate) eventMetaParts.push(fmtDate(item.event.eventDate));
+    if(item.event.eventType) eventMetaParts.push(escapeAttr(item.event.eventType));
+    const eventMeta=eventMetaParts.join(" • ") || "Details TBD";
+    const tasks=item.tasks;
+    const taskSummary=tasks.total?`${tasks.completed}/${tasks.total} • ${tasks.completionPercent||0}%`:"0/0 • 0%";
+    const budgetSummary=item.budget.forecast?`${fmtMoney(item.budget.actual||0)} / ${fmtMoney(item.budget.forecast||0)}`:"No budget";
+    const vendorNames=item.vendors.map(v=>v.name).filter(Boolean);
+    const vendorDetail=vendorNames.length?`Vendors: ${vendorNames.slice(0,3).map(escapeAttr).join(", ")}${vendorNames.length>3?"…":""}`:"Vendors: none linked";
+    const nextSlot=item.nextSlot
+      ? `Next slot: ${(item.nextSlot.start?fmtDateTime(item.nextSlot.start):"Date TBD")} • ${escapeAttr(item.nextSlot.title||"Unnamed")}`
+      : "Next slot: none scheduled";
+
+    card.innerHTML=`
+      <h4>${eventTitle}</h4>
+      <div class="muted">${eventMeta}</div>
+      <div class="relationship-metrics">
+        <span>Tasks ${taskSummary}</span>
+        <span>Vendors ${item.vendors.length}</span>
+        <span>Budget ${budgetSummary}</span>
+        <span>Timeline ${item.timelineCount}</span>
+        <span>POIs ${item.poiCount}</span>
+      </div>
+      <div class="relationship-next">${vendorDetail}<br>${nextSlot}</div>
+    `;
+    frag.appendChild(card);
+  });
+
+  container.appendChild(frag);
+}
+
+function renderDataHealth(){
+  const container=qs("#dataHealth");
+  if(!container) return;
+  container.innerHTML="";
+
+  const graph=state.graph;
+  if(!graph){
+    container.innerHTML='<p class="relationship-empty">Data health summary becomes available once data loads.</p>';
+    return;
+  }
+
+  const contexts=Array.from(graph.contexts?.values()||[]).filter(ctx=>ctx?.event);
+  const eventsWithout=graph.eventsWithout||{ tasks:[], timeline:[], budget:[], vendors:[], notes:[], pois:[] };
+  const eventsMissingLocation=Array.isArray(graph.eventsMissingLocation)?graph.eventsMissingLocation:[];
+  const eventsMissingOwner=Array.isArray(graph.eventsMissingOwner)?graph.eventsMissingOwner:[];
+  const fullyLinked=Array.isArray(graph.fullyLinkedEvents)?graph.fullyLinkedEvents:[];
+  const unlinkedVendors=Array.isArray(graph.unlinkedVendors)?graph.unlinkedVendors:[];
+  const orphans=graph.orphans||{ tasks:[], timeline:[], budget:[], notes:[], vendorLinks:[], pois:[] };
+  const scopedTasks=graph.scoped?.tasks||{ overdueList:[], dueSoonList:[] };
+
+  const hasData = contexts.length
+    || Object.values(eventsWithout).some(list=>Array.isArray(list)&&list.length)
+    || eventsMissingLocation.length
+    || eventsMissingOwner.length
+    || unlinkedVendors.length
+    || Object.values(orphans).some(list=>Array.isArray(list)&&list.length);
+
+  if(!hasData){
+    container.innerHTML='<p class="relationship-empty">Add events, tasks, vendors, or budgets to surface relational insights.</p>';
+    return;
+  }
+
+  const frag=fragment();
+
+  const sampleList=(items,fn)=>{
+    if(!Array.isArray(items) || !items.length) return "";
+    const names=items.slice(0,3).map(item=>{
+      const label=fn(item);
+      return label?label.trim():"";
+    }).filter(Boolean);
+    if(!names.length) return "";
+    return names.join(", ")+(items.length>3?"…":"");
+  };
+  const sampleEvents=list=>sampleList(list,ev=>ev?.title||"Untitled event");
+  const sampleTasks=list=>sampleList(list,task=>task?.title||task?.id||"Task");
+  const sampleTaskEntries=list=>sampleList(list,entry=>{
+    const title=entry?.task?.title||"Task";
+    const eventName=entry?.event?.title;
+    return eventName?`${title} (${eventName})`:title;
+  });
+  const sampleBudget=list=>sampleList(list,line=>line?.item||line?.cat||"Line item");
+  const sampleNotes=list=>sampleList(list,note=>{
+    if(note?.comment) return note.comment;
+    if(Number.isFinite(Number(note?.rating))) return `Rating ${note.rating}`;
+    return note?.id||"Note";
+  });
+  const sampleVendorLinks=list=>sampleList(list,link=>{
+    const name=link?.vendor?.name || link?.vendor?.company || "Vendor";
+    const eid=link?.eventId || "missing";
+    return `${name} → ${eid}`;
+  });
+  const sampleVendors=list=>sampleList(list,v=>v?.name||v?.company||"Vendor");
+  const samplePois=list=>sampleList(list,poi=>poi?.label||poi?.address||"POI");
+
+  const coverageCard=document.createElement("article");
+  coverageCard.className="relationship-health-card";
+  const coverageTitle=document.createElement("h4");
+  coverageTitle.textContent="Event Coverage";
+  coverageCard.appendChild(coverageTitle);
+  const coverageList=document.createElement("ul");
+  coverageList.className="relationship-health-list";
+  const coverageMetrics=[
+    { label:"Events without tasks", value:Array.isArray(eventsWithout.tasks)?eventsWithout.tasks.length:0 },
+    { label:"Events without vendors", value:Array.isArray(eventsWithout.vendors)?eventsWithout.vendors.length:0 },
+    { label:"Events without budget lines", value:Array.isArray(eventsWithout.budget)?eventsWithout.budget.length:0 },
+    { label:"Events without timeline slots", value:Array.isArray(eventsWithout.timeline)?eventsWithout.timeline.length:0 },
+    { label:"Events without POIs", value:Array.isArray(eventsWithout.pois)?eventsWithout.pois.length:0 },
+    { label:"Events missing owner", value:eventsMissingOwner.length },
+    { label:"Events missing coordinates", value:eventsMissingLocation.length },
+    { label:"Fully linked events", value:fullyLinked.length, highlight:true }
+  ];
+  coverageMetrics.forEach(metric=>{
+    const li=document.createElement("li");
+    const label=document.createElement("span");
+    label.textContent=metric.label;
+    const value=document.createElement("strong");
+    value.textContent=String(metric.value||0);
+    if(metric.highlight && (metric.value||0)>0){
+      value.classList.add("positive");
+    }
+    li.appendChild(label);
+    li.appendChild(value);
+    coverageList.appendChild(li);
+  });
+  coverageCard.appendChild(coverageList);
+  frag.appendChild(coverageCard);
+
+  const highlights=document.createElement("article");
+  highlights.className="relationship-health-card";
+  const highlightsTitle=document.createElement("h4");
+  highlightsTitle.textContent="Highlights";
+  highlights.appendChild(highlightsTitle);
+  const highlightWrap=document.createElement("div");
+  highlightWrap.className="relationship-tag-wrap";
+  const highlightItems=[];
+  if(fullyLinked.length){
+    highlightItems.push(`${fullyLinked.length} fully connected event${fullyLinked.length===1?"":"s"}`);
+  }
+  const upcomingCount=graph.scoped?.events?.upcomingList?.length||0;
+  if(upcomingCount){
+    highlightItems.push(`${upcomingCount} upcoming event${upcomingCount===1?"":"s"}`);
+  }
+  const vendorCounts=new Map();
+  (graph.vendorAssignments||[]).forEach(entry=>{
+    const vendor=entry?.vendor;
+    if(!vendor || !vendor.id) return;
+    if(!vendorCounts.has(vendor.id)){
+      vendorCounts.set(vendor.id,{ vendor, count:0 });
+    }
+    vendorCounts.get(vendor.id).count+=1;
+  });
+  const topVendor=[...vendorCounts.values()].sort((a,b)=>b.count-a.count|| (a.vendor.name||"").localeCompare(b.vendor.name||""))[0];
+  if(topVendor && topVendor.count>1){
+    const name=topVendor.vendor.name||topVendor.vendor.company||"Vendor";
+    highlightItems.push(`${name} supports ${topVendor.count} events`);
+  }
+  if(!highlightItems.length){
+    const empty=document.createElement("span");
+    empty.className="relationship-tag";
+    empty.textContent="Link more data to surface highlights";
+    highlightWrap.appendChild(empty);
+  }else{
+    highlightItems.forEach(text=>{
+      const tag=document.createElement("span");
+      tag.className="relationship-tag";
+      tag.textContent=text;
+      highlightWrap.appendChild(tag);
+    });
+  }
+  highlights.appendChild(highlightWrap);
+  frag.appendChild(highlights);
+
+  const issuesCard=document.createElement("article");
+  issuesCard.className="relationship-health-card";
+  const issuesTitle=document.createElement("h4");
+  issuesTitle.textContent="Attention";
+  issuesCard.appendChild(issuesTitle);
+  const issuesList=document.createElement("ul");
+  issuesList.className="relationship-issue-list";
+
+  const issueItems=[];
+  const pushEventIssue=(list,label)=>{
+    if(Array.isArray(list) && list.length){
+      issueItems.push({ title:`${label} (${list.length})`, detail:sampleEvents(list) });
+    }
+  };
+  pushEventIssue(eventsWithout.tasks,"Events without tasks");
+  pushEventIssue(eventsWithout.vendors,"Events without vendors");
+  pushEventIssue(eventsWithout.budget,"Events without budget lines");
+  pushEventIssue(eventsWithout.timeline,"Events without timeline slots");
+  pushEventIssue(eventsWithout.pois,"Events without POIs");
+  pushEventIssue(eventsMissingOwner,"Events missing owner");
+  pushEventIssue(eventsMissingLocation,"Events missing coordinates");
+
+  const pushIssue=(list,label,formatter)=>{
+    if(Array.isArray(list) && list.length){
+      issueItems.push({ title:`${label} (${list.length})`, detail:formatter(list) });
+    }
+  };
+  pushIssue(scopedTasks.overdueList,"Overdue tasks",sampleTaskEntries);
+  pushIssue(unlinkedVendors,"Vendors not linked to events",sampleVendors);
+  pushIssue(orphans.tasks,"Tasks referencing missing events",sampleTasks);
+  pushIssue(orphans.timeline,"Timeline slots referencing missing events",sampleTasks);
+  pushIssue(orphans.budget,"Budget lines referencing missing events",sampleBudget);
+  pushIssue(orphans.notes,"Notes referencing missing events",sampleNotes);
+  pushIssue(orphans.pois,"POIs referencing missing events",samplePois);
+  pushIssue(orphans.vendorLinks,"Vendor links referencing missing events",sampleVendorLinks);
+
+  if(!issueItems.length){
+    const li=document.createElement("li");
+    li.className="empty";
+    const strong=document.createElement("strong");
+    strong.textContent="All linked data looks healthy";
+    li.appendChild(strong);
+    const span=document.createElement("span");
+    span.textContent="Keep associating vendors, budgets, and schedules to maintain this view.";
+    li.appendChild(span);
+    issuesList.appendChild(li);
+  }else{
+    issueItems.forEach(item=>{
+      const li=document.createElement("li");
+      const strong=document.createElement("strong");
+      strong.textContent=item.title;
+      li.appendChild(strong);
+      if(item.detail){
+        const span=document.createElement("span");
+        span.textContent=item.detail;
+        li.appendChild(span);
+      }
+      issuesList.appendChild(li);
+    });
+  }
+
+  issuesCard.appendChild(issuesList);
+  frag.appendChild(issuesCard);
+
+  container.appendChild(frag);
+}
+
+function buildAnalysisList(items){
+  const list=document.createElement("ul");
+  list.className="analysis-list";
+  (items||[]).forEach(item=>{
+    if(!item || !item.label) return;
+    const li=document.createElement("li");
+    const head=document.createElement("div");
+    head.className="analysis-metric-head";
+    const label=document.createElement("span");
+    label.className="analysis-label";
+    label.textContent=item.label;
+    const value=document.createElement("span");
+    value.className="analysis-value";
+    value.textContent=item.value ?? "";
+    head.appendChild(label);
+    head.appendChild(value);
+    li.appendChild(head);
+    if(item.detail){
+      const detail=document.createElement("p");
+      detail.className="analysis-detail";
+      detail.textContent=item.detail;
+      li.appendChild(detail);
+    }
+    list.appendChild(li);
+  });
+  return list;
+}
+
+function linearRegression(points){
+  if(!Array.isArray(points) || !points.length){
+    return { slope:0, intercept:0 };
+  }
+  if(points.length===1){
+    const single=points[0];
+    return { slope:0, intercept:Number(single?.y)||0 };
+  }
+  let sumX=0,sumY=0,sumXY=0,sumXX=0;
+  points.forEach(pt=>{
+    const x=Number(pt?.x)||0;
+    const y=Number(pt?.y)||0;
+    sumX+=x; sumY+=y; sumXY+=x*y; sumXX+=x*x;
+  });
+  const n=points.length;
+  const denom=(n*sumXX)-(sumX*sumX);
+  const slope=denom===0?0:((n*sumXY)-(sumX*sumY))/denom;
+  const intercept=(sumY-(slope*sumX))/n;
+  return { slope, intercept };
+}
+
+function incrementMonthKey(ym){
+  if(!ym || typeof ym!=="string" || ym.length<7) return ym||"";
+  const parts=ym.split("-");
+  if(parts.length<2) return ym;
+  let year=Number(parts[0]);
+  let month=Number(parts[1]);
+  if(!Number.isFinite(year) || !Number.isFinite(month)) return ym;
+  month+=1;
+  if(month>12){ month=1; year+=1; }
+  return `${String(year).padStart(4,"0")}-${String(month).padStart(2,"0")}`;
+}
+
+function formatMonthLabel(ym){
+  if(!ym) return "Next period";
+  const parts=ym.split("-");
+  if(parts.length<2) return ym;
+  const year=Number(parts[0]);
+  const month=Number(parts[1]);
+  if(!Number.isFinite(year) || !Number.isFinite(month)) return ym;
+  const date=new Date(year,Math.max(0,month-1),1);
+  if(Number.isNaN(date.getTime())) return ym;
+  return date.toLocaleString(undefined,{ month:"short", year:"numeric" });
+}
+
+function renderAnalysis(){
+  const actualContainer=qs("#analysisActual");
+  const forecastContainer=qs("#analysisPredictions");
+  if(!(actualContainer && forecastContainer)) return;
+  const actualCard=actualContainer.closest(".analysis-card");
+  const forecastCard=forecastContainer.closest(".analysis-card");
+  const toggleCards=show=>{
+    [actualCard,forecastCard].forEach(card=>{
+      if(!card) return;
+      if(show){
+        card.removeAttribute("hidden");
+        card.removeAttribute("aria-hidden");
+      }else{
+        card.setAttribute("hidden","true");
+        card.setAttribute("aria-hidden","true");
+      }
+    });
+  };
+  const inScope=state.currentTab==="dashboard" || state.currentTab==="analysis";
+  if(!inScope){
+    toggleCards(false);
+    actualContainer.innerHTML="";
+    forecastContainer.innerHTML="";
+    return;
+  }
+  toggleCards(true);
+  actualContainer.innerHTML="";
+  forecastContainer.innerHTML="";
+
+  const graph=state.graph;
+  if(!graph){
+    actualContainer.innerHTML='<p class="muted">Analysis becomes available once data loads.</p>';
+    forecastContainer.innerHTML='<p class="muted">Predictions become available once data loads.</p>';
+    return;
+  }
+
+  const scopedEvents=filteredEvents();
+  const scopeIds=graph.scopeIds||new Set();
+  const contexts=graph.contexts||new Map();
+  const contextsInScope=scopedEvents.map(ev=>contexts.get(ev.id)).filter(Boolean);
+  const budgetLines=(store.data.budget||[]).filter(line=>{
+    if(!line) return false;
+    if(line.eventId && scopeIds.size && !scopeIds.has(line.eventId)) return false;
+    return true;
+  });
+  const budgetTotals=budgetLines.reduce((acc,line)=>{
+    const fc=toNumber(line.forecast) || (toNumber(line.qty)*toNumber(line.unit)*(1+toNumber(line.tax)/100));
+    const act=toNumber(line.actual);
+    acc.forecast+=fc;
+    acc.actual+=act;
+    return acc;
+  },{ forecast:0, actual:0 });
+
+  if(!scopedEvents.length){
+    actualContainer.innerHTML='<p class="muted">No events match the current filters. Adjust filters to review analysis.</p>';
+  }else{
+    const statusCounts=new Map();
+    scopedEvents.forEach(ev=>{
+      const key=(ev.status||"Unspecified").trim()||"Unspecified";
+      statusCounts.set(key,(statusCounts.get(key)||0)+1);
+    });
+    const statusSummary=Array.from(statusCounts.entries())
+      .sort((a,b)=>a[0].localeCompare(b[0]))
+      .map(([status,count])=>`${status}: ${count}`)
+      .join(" • ");
+
+    const tasks=graph.scoped?.tasks||{ total:0, completed:0, overdueCount:0, completionPercent:0, dueSoonList:[] };
+    const variance=budgetTotals.actual-budgetTotals.forecast;
+    const vendorTotal=contextsInScope.reduce((sum,ctx)=>sum+((ctx?.vendors||[]).length),0);
+    const vendorless=contextsInScope.filter(ctx=>(ctx?.vendors||[]).length===0).length;
+    const avgVendors=contextsInScope.length?vendorTotal/contextsInScope.length:0;
+    const ratings=graph.scoped?.ratings||{ average:0, entries:[] };
+
+    const metrics=[
+      {
+        label:"Events in scope",
+        value:String(scopedEvents.length),
+        detail:statusSummary || "No status data captured for filtered events."
+      },
+      {
+        label:"Task progress",
+        value:tasks.total?`${tasks.completionPercent||0}%`:"—",
+        detail:tasks.total
+          ? `${tasks.completed||0}/${tasks.total} completed • ${tasks.overdueCount||0} overdue`
+          : "No tasks linked to the current scope."
+      },
+      {
+        label:"Budget burn",
+        value:(budgetTotals.forecast||budgetTotals.actual)?fmtMoney(budgetTotals.actual):"—",
+        detail:(budgetTotals.forecast||budgetTotals.actual)
+          ? `Forecast ${fmtMoney(budgetTotals.forecast)} • Variance ${fmtMoney(variance)}`
+          : "Add budget lines to see financial metrics."
+      },
+      {
+        label:"Vendor coverage",
+        value:vendorTotal?`${vendorTotal} linked`:"0 linked",
+        detail:contextsInScope.length
+          ? `Avg ${avgVendors.toFixed(1)} vendors/event • ${vendorless} event${vendorless===1?"":"s"} without vendors`
+          : "No events selected for scope."
+      },
+      {
+        label:"Client satisfaction",
+        value:(ratings.entries||[]).length?ratings.average.toFixed(2):"—",
+        detail:(ratings.entries||[]).length
+          ? `Based on ${(ratings.entries||[]).length} rating${ratings.entries.length===1?"":"s"}.`
+          : "Capture post-event ratings to track satisfaction."
+      }
+    ];
+    actualContainer.appendChild(buildAnalysisList(metrics));
+  }
+
+  const predictions=[];
+
+  const eventsAll=(store.data.events||[]).filter(ev=>ev&&ev.eventDate);
+  if(eventsAll.length){
+    const monthCounts=new Map();
+    eventsAll.forEach(ev=>{
+      const ym=(ev.eventDate||"").slice(0,7);
+      if(!ym) return;
+      monthCounts.set(ym,(monthCounts.get(ym)||0)+1);
+    });
+    const sortedMonths=Array.from(monthCounts.keys()).sort();
+    if(sortedMonths.length){
+      const points=sortedMonths.map((month,idx)=>({ x:idx+1, y:monthCounts.get(month) }));
+      const trend=linearRegression(points);
+      const nextIndex=points.length+1;
+      let projected=Math.round(trend.intercept + trend.slope*nextIndex);
+      if(!Number.isFinite(projected) || projected<0){
+        const lastMonth=points[points.length-1];
+        projected=Math.max(0,Math.round(Number(lastMonth?.y)||0));
+      }
+      const nextMonthKey=incrementMonthKey(sortedMonths[sortedMonths.length-1]);
+      predictions.push({
+        label:"Projected events next month",
+        value:String(projected),
+        detail:`Trend from ${sortedMonths.length} month${sortedMonths.length===1?"":"s"}; next period ${formatMonthLabel(nextMonthKey)}`
+      });
+    }
+  }
+
+  if(budgetTotals.forecast>0){
+    const realized=budgetLines.reduce((acc,line)=>{
+      const fc=toNumber(line.forecast) || (toNumber(line.qty)*toNumber(line.unit)*(1+toNumber(line.tax)/100));
+      const act=toNumber(line.actual);
+      if(act>0){
+        acc.forecast+=fc;
+        acc.actual+=act;
+        acc.count+=1;
+      }
+      return acc;
+    },{ forecast:0, actual:0, count:0 });
+    const ratio=realized.forecast>0?(realized.actual/realized.forecast):1;
+    const safeRatio=(Number.isFinite(ratio)&&ratio>0)?ratio:1;
+    const remaining=Math.max(0,budgetTotals.forecast-realized.forecast);
+    const projectedSpend=budgetTotals.actual + remaining*safeRatio;
+    predictions.push({
+      label:"Forecasted spend at completion",
+      value:fmtMoney(projectedSpend),
+      detail:realized.count
+        ? `Based on ${realized.count} realized line${realized.count===1?"":"s"} at ${ratio.toFixed(2)}× forecast trend.`
+        : "No actual spend recorded yet; assumes full forecast."
+    });
+  }
+
+  const tasksMetrics=graph.scoped?.tasks;
+  if(tasksMetrics && tasksMetrics.total){
+    const open=Math.max(0,(tasksMetrics.total||0)-(tasksMetrics.completed||0));
+    const dueSoonCount=(tasksMetrics.dueSoonList||[]).length||0;
+    const potential=Math.min(100,Math.round(((tasksMetrics.completed||0)+Math.min(open,dueSoonCount))/(tasksMetrics.total||1)*100));
+    let detailText;
+    if(open===0){
+      detailText="All tasks completed; maintain momentum for upcoming events.";
+    }else if(dueSoonCount>0){
+      detailText=`If ${dueSoonCount} due-soon task${dueSoonCount===1?"":"s"} finish, completion reaches ${potential}%.`;
+    }else{
+      detailText=`${open} task${open===1?"":"s"} remain open; completion currently ${tasksMetrics.completionPercent||0}%.`;
+    }
+    predictions.push({
+      label:"Completion potential (next 7 days)",
+      value:`${potential}%`,
+      detail:detailText
+    });
+  }
+
+  if(predictions.length){
+    forecastContainer.appendChild(buildAnalysisList(predictions));
+  }else{
+    forecastContainer.innerHTML='<p class="muted">Add more historical data to unlock projections.</p>';
+  }
+}
+
+/* ---------- Events table & form actions ---------- */
+function renderEventsTable(){
+  const list=qs("#eventCards"); if(!list) return; list.innerHTML="";
+  const graph=state.graph;
+  const contexts=graph?.contexts||new Map();
+  const events=(graph?.scopedEvents && graph.scopedEvents.length)?graph.scopedEvents:filteredEvents();
+
+  const displayData=[];
+  let totalTasks=0;
+  let totalCompleted=0;
+
+  events.forEach(e=>{
+    const ctx=contexts.get(e.id)||null;
+    const taskMetrics=ctx?.metrics?.tasks||{ total:0, completed:0, completionPercent:0 };
+    const budgetMetrics=ctx?.metrics?.budget||{ forecast:0, actual:0 };
+    const nextSlot=ctx?.metrics?.nextSlot||null;
+    const vendors=Array.isArray(ctx?.vendors)?ctx.vendors:[];
+    const pois=Array.isArray(ctx?.pois)?ctx.pois:[];
+
+    const outstanding=Math.max((taskMetrics.total||0)-(taskMetrics.completed||0),0);
+    const hideCompleted=e.status==="Completed" && outstanding===0;
+    if(hideCompleted){
+      return;
+    }
+
+    totalTasks+=taskMetrics.total||0;
+    totalCompleted+=taskMetrics.completed||0;
+
+    const percent=Number.isFinite(taskMetrics.completionPercent)?taskMetrics.completionPercent:(taskMetrics.total?Math.round((taskMetrics.completed/taskMetrics.total)*100):0);
+    const statusClass=e.status==='Completed'?'s-completed':e.status==='Executing'?'s-executing':'s-planning';
+    const taskSummary=taskMetrics.total?`${taskMetrics.completed} of ${taskMetrics.total} tasks completed`:"No tasks yet";
+    const metaParts=[];
+    if(e.eventDate) metaParts.push(fmtDate(e.eventDate));
+    if(e.eventType) metaParts.push(e.eventType);
+    const metaLine=metaParts.length?metaParts.join(" · "):"Details TBD";
+
+    const vendorNames=vendors.map(v=>v.name).filter(Boolean);
+    const vendorSummary=vendorNames.length
+      ? vendorNames.slice(0,2).map(name=>escapeAttr(name)).join(", ")+(vendorNames.length>2?"…":"")
+      : "No vendors linked";
+    const budgetSummary=budgetMetrics.forecast
+      ? `${fmtMoney(budgetMetrics.actual||0)} / ${fmtMoney(budgetMetrics.forecast||0)}`
+      : "No budget lines";
+    const timelineSummary=nextSlot
+      ? `${(nextSlot.start?fmtDateTime(nextSlot.start):"Date TBD")} • ${escapeAttr(nextSlot.title||"Unnamed")}`
+      : "No upcoming slots";
+    const poiSummary=pois.length?`${pois.length} POI${pois.length===1?"":"s"}`:"No POIs";
+
+    const connectionsHtml=`
+      <div class="event-connections">
+        <span><svg class="icon"><use href="#ic-users"></use></svg>${vendorSummary}</span>
+        <span><svg class="icon"><use href="#ic-briefcase"></use></svg>${budgetSummary}</span>
+        <span><svg class="icon"><use href="#ic-calendar"></use></svg>${timelineSummary}</span>
+        <span><svg class="icon"><use href="#ic-pin"></use></svg>${poiSummary}</span>
+      </div>`;
+
+    displayData.push({
+      event:e,
+      percent,
+      statusClass,
+      taskSummary,
+      metaLine,
+      connectionsHtml
+    });
+  });
+
+  if(state.editingEventId && !displayData.some(d=>d.event.id===state.editingEventId)){
+    state.editingEventId=null;
+  }
+
+  const frag=fragment();
+
+  displayData.forEach(({event:e, percent, statusClass, taskSummary, metaLine, connectionsHtml})=>{
+    const card=document.createElement("article");
+    const isEditing=state.editingEventId===e.id;
+    card.className="event-card"+(isEditing?" is-editing":"");
+    card.dataset.eventId=e.id;
+    card.setAttribute("role","listitem");
+
+    const addressHtml=escapeAttr(e.address||"");
+    const summaryText=escapeAttr(taskSummary);
+    const metaHtml=escapeAttr(metaLine);
+    const ownerHtml=e.owner?`<div class="event-meta">Owner: ${escapeAttr(e.owner)}</div>`:"";
+    const titleHtml=escapeAttr(e.title||"Untitled Event");
+    const statusText=escapeAttr(e.status||"");
+
+    const progressMarkup=`
+      <div class="event-progress">
+        <div class="progress-label"><span>${summaryText}</span><span>${percent}%</span></div>
+        <div class="meter-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}" aria-valuetext="${summaryText}">
+          <div class="meter-fill" style="width:${percent}%"></div>
+        </div>
+      </div>`;
+
+    if(isEditing){
+      const typeOptionsList=["Wedding","Baptism","Party"]; if(e.eventType && !typeOptionsList.includes(e.eventType)) typeOptionsList.push(e.eventType);
+      const statusOptionsList=["Planning","Executing","Completed"]; if(e.status && !statusOptionsList.includes(e.status)) statusOptionsList.push(e.status);
+      const typeOptions=typeOptionsList.map(opt=>`<option value="${escapeAttr(opt)}"${opt===e.eventType?" selected":""}>${escapeAttr(opt)}</option>`).join("");
+      const statusOptions=statusOptionsList.map(opt=>`<option value="${escapeAttr(opt)}"${opt===e.status?" selected":""}>${escapeAttr(opt)}</option>`).join("");
+      const ownerValue=escapeAttr(e.owner||"");
+      const addressValue=escapeAttr(e.address||"");
+      const dateValue=escapeAttr(e.eventDate||"");
+      const latValue=escapeAttr(e.lat??"");
+      const lonValue=escapeAttr(e.lon??"");
+
+      card.innerHTML=`
+        <div class="event-card-header">
+          <div class="event-card-title">
+            <h4>Edit Event</h4>
+            <div class="event-meta">${titleHtml}</div>
+          </div>
+          <span class="status ${statusClass}">${statusText}</span>
+        </div>
+        <form class="event-card-form" data-event-form="${escapeAttr(e.id)}" onsubmit="return false;">
+          <div class="event-card-form-grid">
+            <label class="full"><span>Title*</span><input data-field="title" value="${titleHtml}" required></label>
+            <label><span>Type*</span><select data-field="type">${typeOptions}</select></label>
+            <label><span>Date*</span><input data-field="date" type="date" value="${dateValue}" required></label>
+            <label><span>Status*</span><select data-field="status">${statusOptions}</select></label>
+            <label class="full"><span>Address*</span><input data-field="address" value="${addressValue}" required></label>
+            <label class="full"><span>Owner</span><input data-field="owner" value="${ownerValue}"></label>
+            <label><span>Latitude</span><input data-field="lat" type="number" step="any" value="${latValue}"></label>
+            <label><span>Longitude</span><input data-field="lon" type="number" step="any" value="${lonValue}"></label>
+          </div>
+          ${progressMarkup}
+          ${connectionsHtml}
+          <div class="event-card-form-actions no-print">
+            <button type="button" class="success" onclick="saveEventInline('${e.id}')"><svg class="icon"><use href="#ic-save"></use></svg> Save</button>
+            <button type="button" class="ghost" onclick="cancelEventInline()"><svg class="icon"><use href="#ic-refresh"></use></svg> Cancel</button>
+            <button type="button" class="danger" onclick="delEvent('${e.id}')"><svg class="icon"><use href="#ic-trash"></use></svg> Delete</button>
+          </div>
+        </form>`;
+    }else{
+      card.innerHTML=`
+        <div class="event-card-header">
+          <div class="event-card-title">
+            <h4>${titleHtml}</h4>
+            <div class="event-meta">${metaHtml}</div>
+            ${ownerHtml}
+          </div>
+          <span class="status ${statusClass}">${statusText}</span>
+        </div>
+        <div class="event-address">${addressHtml}</div>
+        ${progressMarkup}
+        ${connectionsHtml}
+        <div class="event-actions no-print">
+          <button class="ghost" title="Edit" onclick="editEvent('${e.id}')"><svg class="icon"><use href="#ic-edit"></use></svg> Edit</button>
+          <button class="danger" title="Delete" onclick="delEvent('${e.id}')"><svg class="icon"><use href="#ic-trash"></use></svg> Delete</button>
+        </div>`;
+    }
+
+    frag.appendChild(card);
+  });
+
+  if(displayData.length){
+    list.appendChild(frag);
+  }else{
+    const empty=document.createElement("div");
+    empty.className="events-empty";
+    empty.innerHTML="No active events. Completed events without remaining tasks appear in the Post-Event tab.";
+    list.appendChild(empty);
+  }
+
+  const globalPercent=totalTasks?Math.round((totalCompleted/totalTasks)*100):0;
+  const globalSummary=totalTasks?`${totalCompleted} of ${totalTasks} tasks completed`:"No tasks yet";
+  const summaryEl=qs("#eventsGlobalProgressSummary"); if(summaryEl) summaryEl.textContent=globalSummary;
+  const percentEl=qs("#eventsGlobalProgressPercent"); if(percentEl) percentEl.textContent=`${globalPercent}%`;
+  const bar=qs("#eventsGlobalProgressBar"); if(bar){
+    bar.setAttribute("aria-valuenow",String(globalPercent));
+    bar.setAttribute("aria-valuetext",globalSummary);
+  }
+  const fill=qs("#eventsGlobalProgressFill"); if(fill) fill.style.width=`${globalPercent}%`;
+}
+function resetEventForm(){
+  ["eId","eTitle","eOwner","eLat","eLon","eAddress"].forEach(id=>{const el=qs("#"+id); if(el) el.value=""});
+  if(qs("#eType")) qs("#eType").value="Wedding";
+  if(qs("#eStatus")) qs("#eStatus").value="Planning";
+  if(qs("#eDate")) qs("#eDate").value="";
+  state.addrPick=null;
+  if(eventAddrAuto && typeof eventAddrAuto.reset==="function"){ eventAddrAuto.reset(); }
+}
+function syncEventForm(ev){
+  if(!ev) return;
+  const idField=qs("#eId"); if(idField) idField.value=ev.id||"";
+  const titleInput=qs("#eTitle"); if(titleInput) titleInput.value=ev.title||"";
+  const typeSelect=qs("#eType");
+  if(typeSelect){
+    if(ev.eventType && !Array.from(typeSelect.options||[]).some(opt=>opt.value===ev.eventType)){
+      const opt=document.createElement("option");
+      opt.value=ev.eventType;
+      opt.textContent=ev.eventType;
+      typeSelect.appendChild(opt);
+    }
+    typeSelect.value=ev.eventType||"Wedding";
+  }
+  const dateInput=qs("#eDate"); if(dateInput) dateInput.value=ev.eventDate||"";
+  const statusSelect=qs("#eStatus");
+  if(statusSelect){
+    if(ev.status && !Array.from(statusSelect.options||[]).some(opt=>opt.value===ev.status)){
+      const opt=document.createElement("option");
+      opt.value=ev.status;
+      opt.textContent=ev.status;
+      statusSelect.appendChild(opt);
+    }
+    statusSelect.value=ev.status||"Planning";
+  }
+  const ownerInput=qs("#eOwner"); if(ownerInput) ownerInput.value=ev.owner||"";
+  const addressInput=qs("#eAddress"); if(addressInput) addressInput.value=ev.address||"";
+  const latInput=qs("#eLat");
+  const lonInput=qs("#eLon");
+  const latRaw=ev.lat;
+  const lonRaw=ev.lon;
+  const latNum=typeof latRaw==="number"?latRaw:Number(latRaw);
+  const lonNum=typeof lonRaw==="number"?lonRaw:Number(lonRaw);
+  const latValid=latRaw!=="" && latRaw!==null && latRaw!==undefined && Number.isFinite(latNum);
+  const lonValid=lonRaw!=="" && lonRaw!==null && lonRaw!==undefined && Number.isFinite(lonNum);
+  if(latInput) latInput.value=latValid?latNum:"";
+  if(lonInput) lonInput.value=lonValid?lonNum:"";
+  state.addrPick = ev.address && latValid && lonValid
+    ? {display_name:ev.address,lat:latNum,lon:lonNum}
+    : null;
+}
+function editEvent(id){
+  const e=store.data.events.find(x=>x.id===id); if(!e) return;
+  syncEventForm(e);
+
+  state.editingEventId=id;
+  renderEventsTable();
+  requestAnimationFrame(()=>{
+    const firstField=qs(`.event-card[data-event-id="${id}"] [data-field="title"]`);
+    if(firstField) firstField.focus();
+  });
+}
+
+function cancelEventInline(){
+  state.editingEventId=null;
+  renderEventsTable();
+}
+
+function saveEventInline(id){
+  if(!id) return;
+  const event=store.data.events.find(x=>x.id===id); if(!event) return;
+  const card=qs(`.event-card[data-event-id="${id}"]`); if(!card) return;
+
+  const getField=name=>card.querySelector(`[data-field="${name}"]`);
+  const title=(getField("title")?.value||"").trim();
+  const type=getField("type")?.value||"Wedding";
+  const date=getField("date")?.value||"";
+  const status=getField("status")?.value||"Planning";
+  const address=(getField("address")?.value||"").trim();
+  const owner=(getField("owner")?.value||"").trim();
+  const latRaw=(getField("lat")?.value||"").trim();
+  const lonRaw=(getField("lon")?.value||"").trim();
+
+  if(!title || !date){ alert("Please fill Title and Date"); return; }
+  if(!address){ alert("Please provide an address"); return; }
+
+  const normTitle=title.replace(/\s+/g," ").trim().toLowerCase();
+  const dup=(store.data.events||[]).some(ev=>ev.id!==id && (ev.title||"").replace(/\s+/g," ").trim().toLowerCase()===normTitle);
+  if(dup){ alert("An event with this title already exists. Please choose a different name."); return; }
+
+  let lat=null;
+  if(latRaw){
+    const parsed=Number(latRaw);
+    if(Number.isFinite(parsed)) lat=parsed; else { alert("Latitude must be a number"); return; }
+  }
+  let lon=null;
+  if(lonRaw){
+    const parsed=Number(lonRaw);
+    if(Number.isFinite(parsed)) lon=parsed; else { alert("Longitude must be a number"); return; }
+  }
+
+  event.title=title;
+  event.eventType=type;
+  event.eventDate=date;
+  event.status=status;
+  event.owner=owner;
+  event.address=address;
+  event.lat=lat;
+  event.lon=lon;
+
+  syncEventForm(event);
+
+  let noteCaptured=false;
+  if(status==="Completed"){
+    const existing=(store.data.notes||[]).find(n=>n.eventId===event.id);
+    if(!existing){
+      const r=prompt("Rate this event (1–5):","5");
+      const n=Number(r);
+      if(Number.isFinite(n) && n>=1 && n<=5){
+        const comment=prompt("Any post-event comment? (optional)","")||"";
+        if(!store.data.notes) store.data.notes=[];
+        store.data.notes=store.data.notes.filter(x=>x.eventId!==event.id);
+        store.data.notes.push({ id:uid("note"), eventId:event.id, rating:n, comment });
+        noteCaptured=true;
+      }
+    }
+  }
+
+  store.save();
+  state.editingEventId=null;
+  renderAll(noteCaptured?"post":"events");
+}
+function delEvent(id){
+  if(!id) return;
+  if(confirm("Delete event and its related tasks, timeline slots, budget lines & notes?")){
+    if(state.editingEventId===id){
+      state.editingEventId=null;
+    }
+    // remove event
+    store.remove("events", id);
+    // cascade delete related data
+    store.data.tasks   = (store.data.tasks||[]).filter(x => x.eventId !== id);
+    store.data.timeline= (store.data.timeline||[]).filter(x => x.eventId !== id);
+    store.data.budget  = (store.data.budget||[]).filter(x => x.eventId !== id);
+    store.data.notes   = (store.data.notes||[]).filter(x => x.eventId !== id);
+    store.save();
+    renderAll();
+    if (state.currentTab === "map") safe(renderMap);
+  }
+}
+
+
+// --- Events view toggle (Cards / Rows) ---
+(function setupEventsViewToggle(){
+  const sec = qs("#events");
+  const toggle = qs("#eventsViewToggle");
+  if(!sec || !toggle) return;
+  const KEY = "events.view";
+  function apply(view){
+    sec.setAttribute("data-event-view", view);
+    toggle.querySelectorAll("button").forEach(btn=>btn.setAttribute("aria-pressed", String(btn.dataset.view===view)));
+    try{ localStorage.setItem(KEY, view); }catch{}
+  }
+  let saved=""; try{ saved = localStorage.getItem(KEY)||""; }catch{}
+  apply(saved==="rows"?"rows":"cards");
+  toggle.addEventListener("click", (e)=>{
+    const b = e.target.closest("button[data-view]"); if(!b) return;
+    apply(b.dataset.view);
+  });
+})();
+qs("#btnAddEvent")?.addEventListener("click",()=>{ resetEventForm(); navigate("#/events"); qs("#eTitle")?.focus() });
+async function resolveAddress(q){
+  if(!q || q.length<3) return null;
+  const url=new URL("https://nominatim.openstreetmap.org/search");
+  url.searchParams.set("format","jsonv2");
+  url.searchParams.set("addressdetails","1");
+  url.searchParams.set("limit","1");
+  url.searchParams.set("q",q);
+  // Mexico bounding box (left,top,right,bottom)
+  url.searchParams.set("viewbox","-118.6,32.8,-86.5,14.3");
+  url.searchParams.set("bounded","1");
+  try{
+    const res=await fetch(url,{headers:{Accept:"application/json"}});
+    if(!res.ok) return null;
+    const [first]=await res.json();
+    if(!first) return null;
+    return {display_name:first.display_name, lat:Number(first.lat), lon:Number(first.lon)};
+  }catch(_){ return null }
+}
+
+qs("#btnSaveEvent")?.addEventListener("click", async ()=>{
+  const title=qs("#eTitle")?.value.trim(); const type=qs("#eType")?.value; const date=qs("#eDate")?.value;
+  const status=qs("#eStatus")?.value; const owner=qs("#eOwner")?.value.trim(); const address=qs("#eAddress")?.value.trim();
+  if(!title || !date){ alert("Please fill Title and Date"); return }
+// Prevent duplicate event titles (case-insensitive)
+const currentId = (qs("#eId")?.value || "").trim();
+const normTitle = title.replace(/\s+/g, " ").trim().toLowerCase();
+const dup = (store.data.events || []).some(ev =>
+  ev.id !== currentId &&
+  (ev.title || "").replace(/\s+/g, " ").trim().toLowerCase() === normTitle
+);
+if (dup) {
+  alert("An event with this title already exists. Please choose a different name.");
+  return;
+}
+
+  // ✅ FIX: use state.addrPick (not stateAddr.pick). Auto-resolve if missing.
+  let pick=state.addrPick && state.addrPick.display_name===address ? state.addrPick : null;
+  if(!pick){
+    pick = await resolveAddress(address);
+    if(pick){
+      // write back normalized pick so user sees the precise address and coords
+      qs("#eAddress").value=pick.display_name;
+      qs("#eLat").value=pick.lat;
+      qs("#eLon").value=pick.lon;
+      state.addrPick=pick;
+    }
+  }
+  if(!pick){ alert("Please select an address from suggestions (or type a full address and try again)."); return }
+
+    const e={ id:(qs("#eId")?.value||"").trim()||null, title, eventType:type, eventDate:date, status, owner, address:pick.display_name, lat:pick.lat, lon:pick.lon };
+
+  // Save and capture the actual id (important for new events)
+  const savedId = store.upsert("events", e);
+  e.id = savedId;
+
+ // If Completed, optionally record a 1–5 rating + comment tied to this event id
+if (status === "Completed") {
+  const existing = (store.data.notes || []).find(n => n.eventId === e.id);
+  let rating = existing?.rating ?? "";
+  let comment = existing?.comment ?? "";
+  if (!rating) {
+    const r = prompt("Rate this event (1–5):", "5");
+    const n = Number(r);
+    if (Number.isFinite(n) && n >= 1 && n <= 5) {
+      rating = n;
+      comment = prompt("Any post-event comment? (optional)", comment || "") || "";
+      if (!store.data.notes) store.data.notes = [];
+      // enforce single note per event
+      store.data.notes = store.data.notes.filter(x=>x.eventId!==e.id);
+      store.data.notes.push({ id: uid("note"), eventId: e.id, rating: n, comment });
+      store.save();
+    }
+  }
+}
+
+
+  resetEventForm();
+  renderAll();
+
+  // Refresh pins if Map is active
+  if (state.currentTab === "map") { safe(renderMap); }
+});
+
+// Wire up Reset button for Event form
+qs("#btnResetEvent")?.addEventListener("click", () => {
+  resetEventForm();
+  qs("#eTitle")?.focus();
+});
+/* ---------- Render orchestrator ---------- */
+function renderAll(context){
+  const scopedEvents=filteredEvents();
+  const scopeIds=new Set(scopedEvents.map(e=>e.id));
+  state.graph=buildDataGraph({ scopeIds, scopedEvents });
+  fillEventSelectors();
+  fillEventScope();
+  renderKPIs();
+  renderEventConnectivity();
+  renderDataHealth();
+  renderAnalysis();
+  renderEventsTable();
+  renderTasksTable();
+  renderKanban();
+  renderVendors();
+  renderBudget();
+  renderTimeline();
+  renderNotesTable();  
+  if((context||"") === "map"){ renderMap() }
+}
+
+/* ---------- Init ---------- */
+(function init(){
+  store.load();
+  if(!store.data.events.length) seedDemo();
+  navigate(location.hash || "#/dashboard");  // first render happens here
+})();
+
+/* ---------- Tasks (list + kanban) ---------- */
+function completeTask(id){
+  const t=store.data.tasks.find(x=>x.id===id); if(!t) return;
+  t.status="Completed"; t.completedDate=new Date().toISOString();
+  store.save(); renderAll("tasks");
+}
+function renderTasksTable(){
+  const tbody=qs("#tblTasks tbody"); if(!tbody) return; tbody.innerHTML="";
+  const fIds=new Set(filteredEvents().map(e=>e.id));
+  const list=store.data.tasks.filter(t=>fIds.has(t.eventId));
+  const frag=fragment();
+  const eventsById=state.graph?.eventsById || new Map();
+  list.forEach(t=>{
+    const ev=eventsById.get(t.eventId);
+    const overdue=isTaskOverdue(t);
+    const stClass=t.status==="Completed"?"s-completed":t.status==="In Progress"?"s-executing":overdue?"s-overdue":"";
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${t.title}</td><td>${ev?ev.title:""}</td><td>${fmtDate(t.dueDate)}</td><td>${t.assignedTo||""}</td><td><span class="status ${stClass}">${overdue?'Overdue':t.status}</span></td><td class="row no-print"><button class="ghost" title="Complete" onclick="completeTask('${t.id}')"><svg class="icon"><use href="#ic-check"></use></svg></button><button class="ghost" title="Edit" onclick="editTask('${t.id}')"><svg class="icon"><use href="#ic-edit"></use></svg></button><button class="danger" title="Delete" onclick="delTask('${t.id}')"><svg class="icon"><use href="#ic-trash"></use></svg></button></td>`;
+    frag.appendChild(tr);
+  });
+  tbody.appendChild(frag);
+}
+function renderKanban(){
+  const cols={ "Not Started":qs("#col-not-started"), "In Progress":qs("#col-in-progress"), "Completed":qs("#col-completed") };
+  Object.values(cols).forEach(c=>c&&(c.innerHTML=""));
+  const fIds=new Set(filteredEvents().map(e=>e.id));
+  const list=store.data.tasks.filter(t=>fIds.has(t.eventId));
+  const eventsById=state.graph?.eventsById || new Map();
+  list.forEach(t=>{
+    const el=document.createElement("div");
+    el.className="ticket"+(isTaskOverdue(t)?" overdue":"");
+    const ev=eventsById.get(t.eventId);
+    el.innerHTML=`<strong>${t.title}</strong><div class="meta">${ev?ev.title:""} • ${t.assignedTo||"Unassigned"} • ${fmtDate(t.dueDate)||"No due"}</div><div class="row no-print" style="margin-top:6px"><button class="ghost" title="Complete" onclick="completeTask('${t.id}')"><svg class="icon"><use href="#ic-check"></use></svg></button><button class="ghost" title="Edit" onclick="editTask('${t.id}')"><svg class="icon"><use href="#ic-edit"></use></svg></button></div>`;
+    const col=cols[t.status]||cols["Not Started"];
+    col && col.appendChild(el);
+  });
+}
+function resetTaskForm(){ ["tId","tTitle","tAssigned","tNotes"].forEach(id=>{const el=qs("#"+id); if(el) el.value=""}); if(qs("#tDue")) qs("#tDue").value=""; if(qs("#tStatus")) qs("#tStatus").value="Not Started"; fillEventSelectors() }
+function editTask(id){
+  const t=store.data.tasks.find(x=>x.id===id); if(!t) return;
+  qs("#tId").value=t.id; qs("#tEvent").value=t.eventId; qs("#tTitle").value=t.title||"";
+  qs("#tDue").value=t.dueDate||""; qs("#tAssigned").value=t.assignedTo||"";
+  qs("#tStatus").value=t.status||"Not Started"; qs("#tNotes").value=t.notes||"";
+  navigate("#/tasks");
+}
+function delTask(id){ if(confirm("Delete this task?")){ store.remove("tasks",id); renderAll("tasks") } }
+qs("#btnAddTask")?.addEventListener("click",()=>{ resetTaskForm(); navigate("#/tasks"); qs("#tTitle")?.focus() });
+qs("#btnSaveTask")?.addEventListener("click",()=>{
+  const t={ id:(qs("#tId")?.value||"").trim()||null, eventId:qs("#tEvent")?.value, title:qs("#tTitle")?.value.trim(),
+    dueDate:qs("#tDue")?.value||"", assignedTo:qs("#tAssigned")?.value.trim(), status:qs("#tStatus")?.value, completedDate:"", notes:qs("#tNotes")?.value.trim() };
+  if(!t.eventId || !t.title){ alert("Please choose Event and fill Task title"); return }
+  store.upsert("tasks",t); resetTaskForm(); renderAll("tasks");
+});
+qs("#btnResetTask")?.addEventListener("click", resetTaskForm);
+
+/* ---------- Vendors ---------- */
+function renderVendors(){
+  const tbody=qs("#tblVendors tbody"); if(!tbody) return; tbody.innerHTML="";
+  const frag=fragment();
+  const list=store.data.vendors.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const eventsById=state.graph?.eventsById || new Map();
+  list.forEach(v=>{
+    const tr=document.createElement("tr");
+    const eventNames=(Array.isArray(v.events)?v.events:[])
+      .map(id=>eventsById.get(id)?.title||"")
+      .filter(Boolean);
+    const eventsLabel=eventNames.length?eventNames.join(", "):"—";
+    tr.innerHTML=`<td>${v.name||""}</td><td>${v.company||""}</td><td>${v.role||""}</td><td>${eventsLabel}</td><td>${v.email||""}</td><td>${v.phone||""}</td><td><span class="status">${v.contract||"—"}</span></td><td><span class="status ${v.payment==='Overdue'?'s-overdue':v.payment==='Paid'?'s-completed':''}">${v.payment||"—"}</span></td><td>${v.docs||""}</td><td class="row no-print"><button class="ghost" title="Edit" onclick="editVendor('${v.id}')"><svg class="icon"><use href="#ic-edit"></use></svg></button><button class="danger" title="Delete" onclick="delVendor('${v.id}')"><svg class="icon"><use href="#ic-trash"></use></svg></button></td>`;
+    frag.appendChild(tr);
+  });
+  tbody.appendChild(frag);
+}
+function resetVendorForm(){
+  ["vId","vName","vCompany","vRole","vEmail","vPhone","vDocs"].forEach(id=>{const el=qs("#"+id); if(el) el.value=""});
+  if(qs("#vContract")) qs("#vContract").value="Draft";
+  if(qs("#vPayment")) qs("#vPayment").value="Due";
+  const vEvents=qs("#vEvents");
+  if(vEvents){ Array.from(vEvents.options).forEach(opt=>opt.selected=false); }
+}
+function editVendor(id){
+  const v=store.data.vendors.find(x=>x.id===id); if(!v) return;
+  qs("#vId").value=v.id; qs("#vName").value=v.name||""; qs("#vCompany").value=v.company||""; qs("#vRole").value=v.role||"";
+  qs("#vEmail").value=v.email||""; qs("#vPhone").value=v.phone||""; qs("#vContract").value=v.contract||"Draft"; qs("#vPayment").value=v.payment||"Due"; qs("#vDocs").value=v.docs||"";
+  const vEvents=qs("#vEvents");
+  if(vEvents){
+    const selected=new Set(Array.isArray(v.events)?v.events:[]);
+    Array.from(vEvents.options).forEach(opt=>{ opt.selected=selected.has(opt.value); });
+  }
+  navigate("#/vendors");
+}
+function delVendor(id){ if(confirm("Delete this vendor?")){ store.remove("vendors",id); renderAll("vendors") } }
+qs("#btnAddVendor")?.addEventListener("click",()=>{ resetVendorForm(); navigate("#/vendors"); qs("#vName")?.focus() });
+qs("#btnSaveVendor")?.addEventListener("click",()=>{
+  const eventSelect=qs("#vEvents");
+  const linked=eventSelect?Array.from(eventSelect.selectedOptions||[]).map(opt=>opt.value).filter(Boolean):[];
+  const v={ id:(qs("#vId")?.value||"").trim()||null, name:qs("#vName")?.value.trim(), company:qs("#vCompany")?.value.trim(), role:qs("#vRole")?.value.trim(), email:qs("#vEmail")?.value.trim(), phone:qs("#vPhone")?.value.trim(), contract:qs("#vContract")?.value, payment:qs("#vPayment")?.value, docs:qs("#vDocs")?.value.trim(), events:linked };
+  if(!v.name){ alert("Vendor name is required"); return }
+  store.upsert("vendors",v); resetVendorForm(); renderAll("vendors");
+});
+qs("#btnResetVendor")?.addEventListener("click", resetVendorForm);
+qs("#btnPrintVendors")?.addEventListener("click", ()=>window.print());
+
+/* ---------- Budget ---------- */
+function renderBudget(){
+  const tbody=qs("#tblBudget tbody"); if(!tbody) return; tbody.innerHTML="";
+  let sumF=0,sumA=0;
+  const fIds=new Set(filteredEvents().map(e=>e.id));
+  const rows=store.data.budget.filter(b=>!b.eventId || fIds.has(b.eventId));
+  const frag=fragment();
+  const eventsById=state.graph?.eventsById || new Map();
+  rows.forEach(b=>{
+    const ev=eventsById.get(b.eventId);
+    const forecast = b.forecast || (toNumber(b.qty)*toNumber(b.unit)*(1+toNumber(b.tax)/100));
+    const actual = toNumber(b.actual);
+    sumF+=forecast; sumA+=actual;
+    const variance = actual - forecast;
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${ev?ev.title:"—"}</td><td>${b.cat||""}</td><td>${b.item||""}</td><td>${b.qty??1}</td><td>${fmtMoney(b.unit||0)}</td><td>${toNumber(b.tax||0).toFixed(2)}</td><td>${fmtMoney(forecast)}</td><td>${fmtMoney(actual)}</td><td>${fmtMoney(variance)}</td><td class="row no-print"><button class="ghost" title="Edit" onclick="editLine('${b.id}')"><svg class="icon"><use href="#ic-edit"></use></svg></button><button class="danger" title="Delete" onclick="delLine('${b.id}')"><svg class="icon"><use href="#ic-trash"></use></svg></button></td>`;
+    frag.appendChild(tr);
+  });
+  tbody.appendChild(frag);
+  qs("#sumForecast").textContent=fmtMoney(sumF);
+  qs("#sumActual").textContent=fmtMoney(sumA);
+  qs("#sumVariance").textContent=fmtMoney(sumA-sumF);
+}
+function resetLineForm(){ ["bId","bCat","bItem","bNotes"].forEach(id=>{const el=qs("#"+id); if(el) el.value=""}); ["bQty","bUnit","bTax","bForecast","bActual"].forEach(id=>{const el=qs("#"+id); if(el) el.value="0"}); fillEventSelectors() }
+function editLine(id){
+  const b=store.data.budget.find(x=>x.id===id); if(!b) return;
+  qs("#bId").value=b.id; qs("#bEvent").value=b.eventId||""; qs("#bCat").value=b.cat||""; qs("#bItem").value=b.item||"";
+  qs("#bQty").value=b.qty??1; qs("#bUnit").value=b.unit??0; qs("#bTax").value=b.tax??0; qs("#bForecast").value=b.forecast??0; qs("#bActual").value=b.actual??0; qs("#bNotes").value=b.notes||"";
+  navigate("#/budget");
+}
+function delLine(id){ if(confirm("Delete this budget line?")){ store.remove("budget",id); renderAll("budget") } }
+qs("#btnAddLine")?.addEventListener("click",()=>{ resetLineForm(); navigate("#/budget"); qs("#bCat")?.focus() });
+qs("#btnSaveLine")?.addEventListener("click",()=>{
+  const b={ id:(qs("#bId")?.value||"").trim()||null, eventId:qs("#bEvent")?.value||"", cat:qs("#bCat")?.value.trim(), item:qs("#bItem")?.value.trim(), qty:toNumber(qs("#bQty")?.value), unit:toNumber(qs("#bUnit")?.value), tax:toNumber(qs("#bTax")?.value), forecast:toNumber(qs("#bForecast")?.value), actual:toNumber(qs("#bActual")?.value), notes:qs("#bNotes")?.value.trim() };
+  if(!b.cat || !b.item){ alert("Category and Item are required"); return }
+  store.upsert("budget",b); resetLineForm(); renderAll("budget");
+});
+qs("#btnResetLine")?.addEventListener("click", resetLineForm);
+qs("#btnExportCSV")?.addEventListener("click",()=>{
+  const headers=["Event","Category","Item","Qty","Unit","Tax%","Forecast","Actual","Variance","Notes"];
+  let csv=headers.join(",")+"\n";
+  const eventsById=state.graph?.eventsById || new Map();
+  store.data.budget.forEach(b=>{
+    const ev=eventsById.get(b.eventId);
+    const forecast=b.forecast || (toNumber(b.qty)*toNumber(b.unit)*(1+toNumber(b.tax)/100));
+    const actual=toNumber(b.actual);
+    const variance=actual-forecast;
+    const row=[(ev?ev.title:""), b.cat||"", b.item||"", b.qty??1, b.unit??0, b.tax??0, forecast, actual, variance, (b.notes||"").replace(/,/g,";")];
+    csv+=row.join(",")+"\n";
+  });
+  const blob=new Blob([csv],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="budget_export.csv";
+  a.click();
+});
+
+/* ---------- Timeline ---------- */
+function renderTimeline(){
+  const tbody=qs("#tblTimeline tbody"); if(!tbody) return; tbody.innerHTML="";
+  const fIds=new Set(filteredEvents().map(e=>e.id));
+  const rows=store.data.timeline.filter(s=>fIds.has(s.eventId));
+  rows.sort((a,b)=> (a.start||"").localeCompare(b.start||""));
+  const frag=fragment();
+  const eventsById=state.graph?.eventsById || new Map();
+  rows.forEach(s=>{
+    const ev=eventsById.get(s.eventId);
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${ev?ev.title:""}</td><td>${s.title||""}</td><td>${s.lane||""}</td><td>${fmtDateTime(s.start)||""}</td><td>${fmtDateTime(s.end)||""}</td><td>${s.notes||""}</td><td class="row no-print"><button class="ghost" title="Edit" onclick="editSlot('${s.id}')"><svg class="icon"><use href="#ic-edit"></use></svg></button><button class="danger" title="Delete" onclick="delSlot('${s.id}')"><svg class="icon"><use href="#ic-trash"></use></svg></button></td>`;
+    frag.appendChild(tr);
+  });
+  tbody.appendChild(frag);
+  detectConflicts();
+}
+function detectConflicts(){
+  const msg=qs("#slotConflicts"); if(!msg) return;
+  const byLane={};
+  store.data.timeline.forEach(s=>{
+    const key=(s.lane||"General")+"::"+(s.eventId||"");
+    (byLane[key] ||= []).push(s);
+  });
+  let conflicts=[];
+  Object.values(byLane).forEach(list=>{
+    list.sort((a,b)=>(a.start||"").localeCompare(b.start||""));
+    for(let i=0;i<list.length-1;i++){
+      const A=list[i], B=list[i+1];
+      if(A.end && B.start && (B.start < A.end)){
+        conflicts.push(`${A.lane||"General"}: "${A.title}" overlaps "${B.title}"`);
+      }
+    }
+  });
+  msg.textContent = conflicts.length ? `Conflicts: ${conflicts.length} — `+conflicts.join(" • ") : "No time conflicts detected.";
+}
+function resetSlotForm(){ ["sId","sTitle","sLane","sNotes"].forEach(id=>{const el=qs("#"+id); if(el) el.value=""}); ["sStart","sEnd"].forEach(id=>{const el=qs("#"+id); if(el) el.value=""}); fillEventSelectors() }
+function openSlotEditor(){ const panel=qs("#slotEditor"); if(panel){ panel.open = true } }
+function editSlot(id){
+  const s=store.data.timeline.find(x=>x.id===id); if(!s) return;
+  qs("#sId").value=s.id; qs("#sEvent").value=s.eventId||""; qs("#sTitle").value=s.title||""; qs("#sLane").value=s.lane||"";
+  qs("#sStart").value=s.start||""; qs("#sEnd").value=s.end||""; qs("#sNotes").value=s.notes||"";
+  openSlotEditor();
+  navigate("#/timeline");
+  qs("#sTitle")?.focus();
+}
+function delSlot(id){ if(confirm("Delete this slot?")){ store.remove("timeline",id); renderAll("timeline") } }
+qs("#btnAddSlot")?.addEventListener("click",()=>{ resetSlotForm(); openSlotEditor(); navigate("#/timeline"); qs("#sTitle")?.focus() });
+qs("#btnSaveSlot")?.addEventListener("click",()=>{
+  const s={ id:(qs("#sId")?.value||"").trim()||null, eventId:qs("#sEvent")?.value, title:qs("#sTitle")?.value.trim(), lane:qs("#sLane")?.value.trim(), start:qs("#sStart")?.value, end:qs("#sEnd")?.value, notes:qs("#sNotes")?.value.trim() };
+  if(!s.eventId || !s.title || !s.start || !s.end){ alert("Please fill required fields"); return }
+  if(s.end < s.start){ alert("End must be after Start"); return }
+  store.upsert("timeline",s); resetSlotForm(); renderAll("timeline");
+});
+qs("#btnResetSlot")?.addEventListener("click", resetSlotForm);
+qs("#btnPrintTimeline")?.addEventListener("click", ()=>window.print());
+
+/* ---------- Settings: Export/Import/Seed/Clear ---------- */
+qs("#btnExport")?.addEventListener("click",()=>{
+  const blob=new Blob([JSON.stringify(store.data,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`event_planner_export_${new Date().toISOString().slice(0,16).replace(/[:T]/g,"-")}.json`; a.click();
+});
+qs("#btnImport")?.addEventListener("click",()=>qs("#fileImport")?.click());
+qs("#fileImport")?.addEventListener("change",(ev)=>{
+  const f=ev.target.files[0]; if(!f) return; const reader=new FileReader();
+  reader.onload=()=>{ try{ const json=JSON.parse(reader.result); if(!json.events||!json.tasks||!json.timeline||!json.vendors||!json.budget) throw new Error("Invalid JSON"); store.data=json; store.save(); renderAll(); alert("Import successful!") }catch(e){ alert("Import failed: "+e.message) } };
+  reader.readAsText(f);
+});
+qs("#btnSeed")?.addEventListener("click",()=>{ if(confirm("Load demo data? This overwrites current data.")){ seedDemo(); renderAll() } });
+qs("#btnClear")?.addEventListener("click",()=>{ if(confirm("Clear ALL data?")){ store.reset(); renderAll() } });
+/* ---------- Notes ---------- */
+function renderNotesTable(){
+  const tbody = qs("#tblNotes tbody"); if(!tbody) return;
+  tbody.innerHTML = "";
+  const frag = fragment();
+
+  // Only show ended/completed events
+  const ended = store.data.events.filter(e=>eventHasEnded(e))
+                 .sort((a,b)=>(a.eventDate||"").localeCompare(b.eventDate||""));
+
+  ended.forEach(e=>{
+    const note = (store.data.notes||[]).find(n=>n.eventId===e.id);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${e.title}</td>
+      <td>${fmtDate(e.eventDate)}</td>
+      <td><span class="status ${e.status==='Completed'?'s-completed':e.status==='Executing'?'s-executing':'s-planning'}">${e.status}</span></td>
+      <td>${note?.rating ?? "—"}</td>
+      <td>${(note?.comment||"").replace(/\n/g,"<br>")}</td>
+      <td class="row no-print">
+        <button class="ghost" title="${note?'Edit':'Add'}" onclick="editNote('${note?.id||""}','${e.id}')"><svg class="icon"><use href="#ic-edit"></use></svg></button>
+        ${note ? `<button class="danger" title="Delete" onclick="delNote('${note.id}')"><svg class="icon"><use href="#ic-trash"></use></svg></button>` : ""}
+      </td>
+    `;
+    frag.appendChild(tr);
+  });
+
+  tbody.appendChild(frag);
+}
+
+function resetNoteForm(){
+  ["nId","nRating","nComment"].forEach(id=>{ const el=qs("#"+id); if(el) el.value = id==="nRating" ? "" : "" });
+  fillEventSelectors();
+}
+
+function editNote(noteId, eventId){
+  const note = (store.data.notes||[]).find(n=>n.id===noteId) || null;
+  if (note) {
+    qs("#nId").value = note.id;
+    qs("#nEvent").value = note.eventId;
+    qs("#nRating").value = note.rating ?? "";
+    qs("#nComment").value = note.comment ?? "";
+  } else {
+    // no note yet for this event -> prefill event for new note
+    qs("#nId").value = "";
+    if (eventId) qs("#nEvent").value = eventId;
+    qs("#nRating").value = "";
+    qs("#nComment").value = "";
+  }
+  navigate("#/post");
+}
+
+function delNote(id){
+  if(!id) return;
+  if(confirm("Delete feedback for this event?")){
+    store.data.notes = (store.data.notes||[]).filter(n=>n.id!==id);
+    store.save();
+    renderAll("post");
+  }
+}
+
+// Save handlers
+qs("#btnSaveNote")?.addEventListener("click", ()=>{
+  const id = (qs("#nId")?.value||"").trim() || null;
+  const eventId = qs("#nEvent")?.value;
+  const rating = Number(qs("#nRating")?.value);
+  const comment = qs("#nComment")?.value?.trim() || "";
+
+  if(!eventId || !Number.isFinite(rating) || rating<1 || rating>5){
+    alert("Please choose an event and enter a rating from 1 to 5."); return;
+  }
+
+  if(!store.data.notes) store.data.notes = [];
+
+  if (id) {
+    // update existing
+    const n = store.data.notes.find(x=>x.id===id);
+    if (n) { n.eventId = eventId; n.rating = rating; n.comment = comment; }
+  } else {
+    // enforce 1 note per event: remove existing for this event
+    store.data.notes = store.data.notes.filter(n=>n.eventId!==eventId);
+    store.data.notes.push({ id: uid("note"), eventId, rating, comment });
+  }
+
+  store.save();
+  resetNoteForm();
+  renderAll("post");
+});
+
+qs("#btnResetNote")?.addEventListener("click", resetNoteForm);
+
+
+/* ---------- Map (Leaflet) ---------- */
+let mapInitDone=false; let _map=null; let _markers=[]; let _poiMarkers=[];
+
+function initMap(){
+  const el=qs("#leafletMap"); if(!el) return;
+  if(typeof L==="undefined"){
+    el.innerHTML='<div style="padding:12px">Map library failed to load. Please check your connection or CDN. The app works offline except tiles.</div>';
+    return;
+  }
+  if(mapInitDone) return;
+  _map=L.map(el).setView([23.6345,-102.5528],5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19,
+    attribution:'&copy; OpenStreetMap contributors'
+  }).addTo(_map);
+  mapInitDone=true;
+}
+
+function clearMarkers(){
+  _markers.forEach(m=>_map.removeLayer(m)); _markers=[];
+  _poiMarkers.forEach(m=>_map.removeLayer(m)); _poiMarkers=[];
+}
+
+function renderMap(){
+  initMap(); if(!_map) return;
+
+  try { _map.invalidateSize(); } catch(_) {}
+
+  clearMarkers();
+
+ const eventsById = state.graph?.eventsById || new Map();
+ const scopeIds = state.graph?.scopeIds || new Set(filteredEvents().map(e=>e.id));
+ const evs = filteredEvents()
+  .filter(e => e.status !== "Completed")
+  .filter(e => Number.isFinite(e?.lat) && Number.isFinite(e?.lon));
+  evs.forEach(e=>{
+    const m = L.marker([e.lat, e.lon]).addTo(_map);
+    m.bindPopup(`<b>${e.title}</b><br>${e.eventType} — ${fmtDate(e.eventDate)}<br>${e.address||""}<br>Status: ${e.status}`);
+    _markers.push(m);
+  });
+
+  // POIs
+  (store.data.pois||[]).forEach(p=>{
+    if(!Number.isFinite(p.lat)||!Number.isFinite(p.lon)) return;
+    if(p.eventId && scopeIds.size && !scopeIds.has(p.eventId)) return;
+    const linkedEvent=eventsById.get(p.eventId);
+    const eventLine=linkedEvent?`<br>Event: ${linkedEvent.title}`:"";
+    const addressLine = p.address ? `${p.address}<br>` : "";
+    const m = L.circleMarker([p.lat,p.lon],{radius:7,weight:2}).addTo(_map)
+      .bindPopup(`<b>${p.label}</b><br>${addressLine}Type: ${p.type||"Other"}${eventLine}`);
+    _poiMarkers.push(m);
+  });
+
+  if (_markers.length || _poiMarkers.length) {
+    const group = L.featureGroup([..._markers, ..._poiMarkers]);
+    _map.fitBounds(group.getBounds().pad(0.2));
+  }
+
+  // Non-destructive empty-state overlay
+  const container = qs("#leafletMap");
+  if (!container) return;
+  let overlay = container.querySelector(".map-empty");
+  if (!_markers.length && !_poiMarkers.length) {
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.className = "map-empty";
+      overlay.style.position = "absolute";
+      overlay.style.inset = "0";
+      overlay.style.display = "flex";
+      overlay.style.alignItems = "center";
+      overlay.style.justifyContent = "center";
+      overlay.style.pointerEvents = "none";
+      overlay.style.fontSize = "14px";
+      overlay.style.padding = "12px";
+      overlay.style.background = "transparent";
+      overlay.style.color = "var(--muted)";
+      container.appendChild(overlay);
+    }
+    overlay.textContent = "No locations match current filters. Try clearing filters.";
+    overlay.style.visibility = "visible";
+  } else if (overlay) {
+    overlay.style.visibility = "hidden";
+  }
+}
+
+// POI actions
+function resetPOIForm(){
+  ["pId","pLabel","pLat","pLon","pAddress"].forEach(id=>{ const el=qs(`#${id}`); if(el) el.value=""; });
+  const type=qs("#pType"); if(type) type.selectedIndex=0;
+  const eventSel=qs("#pEvent"); if(eventSel) eventSel.value="";
+  state.poiAddrPick=null;
+  if(poiAddrAuto && typeof poiAddrAuto.reset==="function"){ poiAddrAuto.reset(); }
+}
+
+qs("#btnAddPOI")?.addEventListener("click", async ()=>{
+  const labelInput=qs("#pLabel");
+  const typeSel=qs("#pType");
+  const addressInput=qs("#pAddress");
+  const latInput=qs("#pLat");
+  const lonInput=qs("#pLon");
+
+  let label=(labelInput?.value||"").trim();
+  const type=typeSel?.value||"Other";
+  const address=(addressInput?.value||"").trim();
+  if(!address){
+    alert("Please enter an address and select a suggestion.");
+    return;
+  }
+
+  let pick=(state.poiAddrPick && state.poiAddrPick.display_name===address) ? state.poiAddrPick : null;
+  if(!pick){
+    pick = await resolveAddress(address);
+    if(pick){
+      if(addressInput) addressInput.value=pick.display_name;
+      if(latInput) latInput.value=pick.lat;
+      if(lonInput) lonInput.value=pick.lon;
+      state.poiAddrPick=pick;
+    }
+  }
+
+  if(!pick){
+    alert("Please select an address from suggestions (or type a full address and try again).");
+    return;
+  }
+
+  const finalLat=Number(pick.lat);
+  const finalLon=Number(pick.lon);
+  if(latInput) latInput.value=finalLat;
+  if(lonInput) lonInput.value=finalLon;
+
+  if(!Number.isFinite(finalLat) || !Number.isFinite(finalLon)){
+    alert("Please provide valid coordinates.");
+    return;
+  }
+
+  if(!label){
+    label = pick.display_name.split(",")[0] || pick.display_name;
+  }
+
+  if(!label){
+    alert("Please provide a label for the POI.");
+    return;
+  }
+
+  const eventId=qs("#pEvent")?.value||"";
+  if(!store.data.pois) store.data.pois=[];
+  store.data.pois.push({
+    id:uid("poi"),
+    label,
+    type,
+    lat:finalLat,
+    lon:finalLon,
+    address: pick ? pick.display_name : (address || ""),
+    eventId
+  });
+  store.save();
+  renderMap();
+  resetPOIForm();
+});
+qs("#btnClearPOI")?.addEventListener("click",()=>{
+  if(confirm("Remove all POIs?")){
+    store.data.pois=[];
+    store.save();
+    renderMap();
+    resetPOIForm();
+  }
+});
+
+/* ---------- Address Autocomplete (Nominatim) ---------- */
+function setupAddressAutocomplete({inputId,listId,onInput,onSelect}){
+  const input=qs(inputId);
+  const list=qs(listId);
+  if(!input || !list) return null;
+
+  let timer=null;
+  let activeIndex=-1;
+
+  const hide=()=>{
+    list.style.display="none";
+    list.innerHTML="";
+    activeIndex=-1;
+    input.setAttribute("aria-expanded","false");
+  };
+
+  const show=()=>{
+    if(list.childElementCount>0){
+      list.style.display="block";
+      input.setAttribute("aria-expanded","true");
+    }
+  };
+
+  const updateActive=(items)=>{
+    items.forEach((node,idx)=>{
+      if(idx===activeIndex){
+        node.classList.add("active");
+        node.setAttribute("aria-selected","true");
+      }else{
+        node.classList.remove("active");
+        node.setAttribute("aria-selected","false");
+      }
+    });
+  };
+
+  const selectNode=(node)=>{
+    if(!node) return;
+    const payload={
+      display_name:node.dataset.display||"",
+      lat:Number(node.dataset.lat),
+      lon:Number(node.dataset.lon)
+    };
+    onSelect?.(payload);
+    hide();
+  };
+
+  const render=(suggestions)=>{
+    if(!Array.isArray(suggestions) || suggestions.length===0){
+      hide();
+      return;
+    }
+    list.innerHTML="";
+    suggestions.forEach((item,idx)=>{
+      const div=document.createElement("div");
+      div.className="autocomplete-item"+(idx===0?" active":"");
+      div.setAttribute("role","option");
+      div.setAttribute("aria-selected", idx===0?"true":"false");
+      div.dataset.lat=item.lat;
+      div.dataset.lon=item.lon;
+      div.dataset.display=item.display_name;
+      div.innerHTML=`<svg class="icon" aria-hidden="true"><use href="#ic-pin"></use></svg> ${item.display_name}`;
+      div.addEventListener("click",()=>selectNode(div));
+      list.appendChild(div);
+    });
+    activeIndex=0;
+    show();
+  };
+
+  const fetchSuggestions=async (q)=>{
+    if(!q || q.length<3){
+      hide();
+      return;
+    }
+    const url=new URL("https://nominatim.openstreetmap.org/search");
+    url.searchParams.set("format","jsonv2");
+    url.searchParams.set("addressdetails","1");
+    url.searchParams.set("limit","8");
+    url.searchParams.set("q",q);
+    url.searchParams.set("viewbox","-118.6,32.8,-86.5,14.3");
+    url.searchParams.set("bounded","1");
+    try{
+      const res=await fetch(url,{headers:{Accept:"application/json"}});
+      if(!res.ok){ hide(); return; }
+      const json=await res.json();
+      render(json);
+    }catch(_){
+      hide();
+    }
+  };
+
+  const debounced=(value)=>{
+    clearTimeout(timer);
+    timer=setTimeout(()=>fetchSuggestions(value),350);
+  };
+
+  input.addEventListener("input", e=>{
+    onInput?.(e);
+    debounced(e.target.value.trim());
+  });
+
+  input.addEventListener("focus", ()=>{
+    if(list.childElementCount>0){
+      show();
+    }
+  });
+
+  input.addEventListener("keydown", e=>{
+    const items=Array.from(list.children);
+    if(!items.length) return;
+    if(e.key==="ArrowDown"){
+      e.preventDefault();
+      activeIndex=clamp(activeIndex+1,0,items.length-1);
+      updateActive(items);
+      items[activeIndex].scrollIntoView({block:"nearest"});
+    }else if(e.key==="ArrowUp"){
+      e.preventDefault();
+      activeIndex=clamp(activeIndex-1,0,items.length-1);
+      updateActive(items);
+      items[activeIndex].scrollIntoView({block:"nearest"});
+    }else if(e.key==="Enter"){
+      e.preventDefault();
+      selectNode(items[activeIndex]);
+    }else if(e.key==="Escape"){
+      hide();
+    }
+  });
+
+  document.addEventListener("click", e=>{
+    if(e.target!==input && !list.contains(e.target)){
+      hide();
+    }
+  });
+
+  return {
+    reset:hide
+  };
+}
+
+eventAddrAuto=setupAddressAutocomplete({
+  inputId:"#eAddress",
+  listId:"#addrList",
+  onInput:()=>{
+    state.addrPick=null;
+    const lat=qs("#eLat"); if(lat) lat.value="";
+    const lon=qs("#eLon"); if(lon) lon.value="";
+  },
+  onSelect:(item)=>{
+    const addr=qs("#eAddress"); if(addr) addr.value=item.display_name;
+    const lat=qs("#eLat"); if(lat) lat.value=item.lat;
+    const lon=qs("#eLon"); if(lon) lon.value=item.lon;
+    state.addrPick=item;
+  }
+});
+
+poiAddrAuto=setupAddressAutocomplete({
+  inputId:"#pAddress",
+  listId:"#poiAddrList",
+  onInput:()=>{
+    state.poiAddrPick=null;
+    const lat=qs("#pLat"); if(lat) lat.value="";
+    const lon=qs("#pLon"); if(lon) lon.value="";
+  },
+  onSelect:(item)=>{
+    const addr=qs("#pAddress"); if(addr) addr.value=item.display_name;
+    const lat=qs("#pLat"); if(lat) lat.value=item.lat;
+    const lon=qs("#pLon"); if(lon) lon.value=item.lon;
+    if(!state.poiAddrPick){
+      const label=qs("#pLabel");
+      if(label && !label.value.trim()){
+        label.value=item.display_name.split(",")[0] || item.display_name;
+      }
+    }
+    state.poiAddrPick=item;
+  }
+});
+/* ---------- Global Search (Header Autocomplete) ---------- */
+let gTimer=null; let gActive=-1;
+
+function hideGlobal(){
+  const box=qs("#globalSearchList");
+  if(box){ box.style.display="none"; box.innerHTML=""; gActive=-1; }
+}
+
+function showGlobal(){
+  const box=qs("#globalSearchList");
+  if(box){ box.style.display="block"; }
+}
+
+function debouncedGlobal(fn,ms=250){
+  return (...args)=>{ clearTimeout(gTimer); gTimer=setTimeout(()=>fn(...args),ms) }
+}
+
+function renderGlobalSuggestions(q){
+  const box=qs("#globalSearchList"); if(!box) return;
+  if(!q || q.length<1){ hideGlobal(); return; }
+  const s=q.toLowerCase();
+  const matches=(store.data.events||[])
+    .filter(e=>(e.title||"").toLowerCase().includes(s) || (e.address||"").toLowerCase().includes(s))
+    .sort((a,b)=>a.title.localeCompare(b.title))
+    .slice(0,8);
+  if(!matches.length){ hideGlobal(); return; }
+
+  box.innerHTML="";
+  matches.forEach((e,idx)=>{
+    const div=document.createElement("div");
+    div.className="search-item"+(idx===0?" active":"");
+    div.setAttribute("role","option");
+    div.dataset.id=e.id;
+    div.innerHTML=`<strong>${e.title}</strong><br><span class="muted">${fmtDate(e.eventDate)} • ${e.address||""}</span>`;
+    div.addEventListener("click",()=>selectGlobal(e.id));
+    box.appendChild(div);
+  });
+  gActive=0; showGlobal();
+}
+
+function selectGlobal(id){
+  const ev=(store.data.events||[]).find(e=>e.id===id);
+  if(!ev) return;
+  state.filters.eventId=id;
+  const inp=qs("#globalSearch"); if(inp) inp.value=ev.title;
+  const sel=qs("#scopeEvent");  if(sel) sel.value=id;
+  hideGlobal();
+  renderAll();
+  if(state.currentTab==="map") safe(renderMap);
+  // Optional: navigate("#/dashboard"); // uncomment if you want auto switch
+}
+
+// Wire input listeners
+qs("#globalSearch")?.addEventListener("input",debouncedGlobal((e)=>renderGlobalSuggestions(e.target.value),250));
+qs("#globalSearch")?.addEventListener("focus",(e)=>renderGlobalSuggestions(e.target.value));
+
+document.addEventListener("click",(e)=>{
+  const box=qs("#globalSearchList");
+  const inp=qs("#globalSearch");
+  if(box && !box.contains(e.target) && e.target!==inp) hideGlobal();
+});
+
+qs("#globalSearch")?.addEventListener("keydown",(e)=>{
+  const box=qs("#globalSearchList"); if(!box) return;
+  const items=Array.from(box.children); if(!items.length) return;
+  if(e.key==="ArrowDown"){ e.preventDefault(); gActive=Math.min(gActive+1,items.length-1); items.forEach(it=>it.classList.remove("active")); items[gActive].classList.add("active"); items[gActive].scrollIntoView({block:"nearest"}); }
+  if(e.key==="ArrowUp"){ e.preventDefault(); gActive=Math.max(gActive-1,0); items.forEach(it=>it.classList.remove("active")); items[gActive].classList.add("active"); items[gActive].scrollIntoView({block:"nearest"}); }
+  if(e.key==="Enter"){ e.preventDefault(); const id=items[gActive]?.dataset?.id; if(id) selectGlobal(id); }
+  if(e.key==="Escape"){ hideGlobal(); }
+});
+
+</script>
+
+
+
+<script>
+(function addSidebarToggle(){
+  const KEY = "epp_sidebar_collapsed";
+  const header = document.querySelector('header[role="banner"]');
+  if (!header) return;
+
+  // Restore state
+  if (localStorage.getItem(KEY) === "1") {
+    document.body.classList.add("sidebar-collapsed");
+  }
+
+  // Button
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "ghost";
+  btn.style.marginTop = "6px";
+  btn.setAttribute("aria-pressed", document.body.classList.contains("sidebar-collapsed") ? "true" : "false");
+  btn.innerHTML = '<svg class="icon" aria-hidden="true"><use href="#ic-menu"></use></svg> <span class="label">Collapse</span>';
+  btn.addEventListener("click", () => {
+    const collapsed = document.body.classList.toggle("sidebar-collapsed");
+    btn.setAttribute("aria-pressed", collapsed ? "true" : "false");
+    localStorage.setItem(KEY, collapsed ? "1" : "0");
+  });
+
+  // Add spacer to push controls to bottom and insert button after it
+  const spacer = document.createElement("div");
+  spacer.className = "sidebar-spacer";
+  header.appendChild(spacer);
+  header.appendChild(btn);
+})();
+
+// ---- Batched localStorage writes ----
+(function patchBatchedSave(){
+  const LS_KEY = "epp_data_v1";
+  const storeRef = window.store; if (!storeRef) return;
+  let pending = null;
+  storeRef.save = function saveBatched(){
+    if (pending) return;
+    const run = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(storeRef.data)); } catch(e) { console.error(e); } pending = null; };
+    if ("requestIdleCallback" in window) pending = requestIdleCallback(run, { timeout: 500 });
+    else pending = setTimeout(run, 120);
+  };
+})();
+
+// ---- Memoize buildDataGraph by store version + scope ----
+(function memoizeGraph(){
+  const orig = window.buildDataGraph; if (typeof orig !== "function") return;
+  const storeRef = window.store; if (!storeRef) return;
+  let version = 0;
+  const origSave = storeRef.save;
+  storeRef.save = function(){ version++; return origSave.apply(storeRef, arguments); };
+  const cache = new Map();
+  window.buildDataGraph = function(opts){
+    const scopeIds = Array.from((opts?.scopeIds)||[]).sort().join("|");
+    const key = version + "::" + scopeIds;
+    if (cache.has(key)) return cache.get(key);
+    const g = orig(opts);
+    cache.set(key, g);
+    return g;
+  };
+})();
+
+// ---- On-demand Leaflet loader (call await ensureLeaflet() inside map init) ----
+async function ensureLeaflet(){
+  if (window.L) return true;
+  if (!document.querySelector('link[data-leaflet]')){
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    link.setAttribute('data-leaflet','');
+    document.head.appendChild(link);
+  }
+  if (!document.querySelector('script[data-leaflet]')){
+    await new Promise((res, rej)=>{
+      const s=document.createElement('script'); s.defer=true; s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; s.setAttribute('data-leaflet',''); s.onload=res; s.onerror=rej; document.head.appendChild(s);
+    });
+  }
+  return !!window.L;
+}
+
+// ---- Focus main after route changes for better a11y ----
+(function focusMainOnNavigate(){
+  const orig = window.navigate; if (typeof orig !== 'function') return;
+  window.navigate = function(hash){ orig(hash); requestAnimationFrame(()=> document.getElementById('main')?.focus()); };
+})();
+</script>
+</body>
+</html>
