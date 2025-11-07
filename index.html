@@ -146,20 +146,39 @@ Perf notes:
     :focus-visible{outline:2px solid var(--accent-3); box-shadow:var(--ring); border-radius:6px}
     a.skip{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
     a.skip:focus{left:8px;top:8px;width:auto;height:auto;background:#fff;color:#000;padding:8px 10px;border-radius:8px;z-index:1000}
-    header{position:sticky;top:0;z-index:40;backdrop-filter:blur(10px);background:var(--glass);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 16px 12px}
-    header h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.4px}
-    nav[role="navigation"]{display:flex;gap:8px;flex-wrap:wrap}
-    .tab-btn{background:#fff;color:var(--text);border:1px solid var(--border);padding:8px 12px;font-size:13px;border-radius:12px;cursor:pointer;box-shadow:0 1px 0 #00000010,inset 0 0 0 1px #ffffff66;transition:transform .06s,box-shadow .12s,border-color .12s,background .12s}
+    .app-shell{min-height:100vh;display:flex;flex-direction:column;background:var(--overlay)}
+    .app-shell-body{flex:1;display:flex;flex-direction:column;min-height:0}
+    @media (min-width:1024px){.app-shell-body{flex-direction:row}}
+    .app-header{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:16px;justify-content:space-between;min-height:64px;padding:calc(8px + env(safe-area-inset-top)) clamp(20px,3vw,32px) 8px;background:var(--panel);border-bottom:1px solid var(--border);box-shadow:0 1px 0 rgba(31,27,46,.04);backdrop-filter:blur(12px)}
+    .header-brand{display:flex;align-items:center;gap:12px}
+    .brand-title{margin:0;font-size:22px;font-weight:800;letter-spacing:.3px}
+    .header-search{flex:1;max-width:560px}
+    .header-search .search-wrap{position:relative;width:100%}
+    .header-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-left:auto;justify-content:flex-end}
+    .icon-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);font:inherit;cursor:pointer;transition:box-shadow .15s ease,transform .12s ease,border-color .15s ease}
+    .icon-button svg{width:18px;height:18px}
+    .icon-button:hover{border-color:var(--accent-3);box-shadow:0 4px 16px rgba(124,58,237,.12)}
+    .icon-button:focus-visible{outline:2px solid var(--accent-3);box-shadow:var(--ring)}
+    .app-sidebar{background:var(--panel);border-right:1px solid var(--border);padding:24px clamp(16px,2.2vw,28px);display:flex;flex-direction:column;gap:24px;width:272px;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto}
+    @media (max-width:1023px){.app-sidebar{position:relative;top:auto;height:auto;width:100%;border-right:0;border-bottom:1px solid var(--border);padding:16px clamp(16px,4vw,24px)} }
+    .sidebar-header{display:flex;flex-direction:column;gap:12px}
+    .scope{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+    .scope select{color:var(--text)}
+    .app-sidebar nav{display:flex;flex-direction:column;gap:8px}
+    @media (max-width:1023px){.app-sidebar nav{flex-direction:row;flex-wrap:wrap}}
+    .tab-btn{display:flex;align-items:center;gap:10px;width:100%;min-height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.04),inset 0 0 0 1px rgba(255,255,255,.4);transition:transform .1s ease,box-shadow .15s ease,border-color .15s ease,background .15s ease}
+    .tab-btn .tab-icon{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center}
+    .tab-btn .tab-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
     [data-theme="dark"] .tab-btn{background:#141c2b;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05),0 1px 0 rgba(0,0,0,.35)}
-    .tab-btn:hover{border-color:var(--accent-3);box-shadow:0 4px 14px rgba(124,58,237,.2);transform:translateY(-1px)}
-    .tab-btn[aria-current="page"]{background:var(--active-tab-bg);border-color:var(--accent)}
+    .tab-btn:hover{border-color:var(--accent-3);box-shadow:0 6px 18px rgba(124,58,237,.16);transform:translateY(-1px)}
+    .tab-btn[aria-current="page"]{background:var(--active-tab-bg);border-color:var(--accent);box-shadow:0 8px 20px rgba(124,58,237,.18)}
     [data-theme="dark"] .tab-btn[aria-current="page"]{background:var(--active-tab-bg-dark)}
-    .theme-toggle{display:inline-flex;gap:10px;align-items:center;border:1px solid var(--border);border-radius:999px;padding:6px 12px;background:#fff;cursor:pointer}
+    .theme-toggle{display:inline-flex;align-items:center;gap:10px;border-radius:999px;padding:0 16px;min-height:38px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer}
     [data-theme="dark"] .theme-toggle{background:#141c2b}
-    .theme-toggle .label{font-size:12px;color:var(--muted)}
+    .theme-toggle .label{font-size:13px;color:var(--muted)}
 /* Accent color picker button */
 .color-chip{
-  width:28px; height:28px; border-radius:999px;
+  width:36px; height:36px; border-radius:999px;
   border:1px solid var(--border);
   background:linear-gradient(180deg,var(--accent-3),var(--accent));
   display:inline-flex; align-items:center; justify-content:center;
@@ -194,12 +213,14 @@ Perf notes:
 }
 
     .icon{width:18px;height:18px;display:inline-block}
-    main{padding:18px;max-width:1320px;margin:0 auto calc(56px + env(safe-area-inset-bottom))}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
-    .analysis-tab{display:flex;flex-direction:column;gap:16px}
-    .analysis-grid{display:grid;gap:16px}
+    main#main{flex:1;padding:32px clamp(24px,3.5vw,48px) calc(48px + env(safe-area-inset-bottom));max-width:1440px;margin:0 auto;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:24px}
+    main#main:focus-visible{outline:2px solid var(--accent-3);outline-offset:6px;border-radius:18px}
+    main#main>*{grid-column:1/-1}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+    .analysis-tab{display:flex;flex-direction:column;gap:24px}
+    .analysis-grid{display:grid;gap:24px}
     @media (min-width:900px){.analysis-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    .analysis-card{display:flex;flex-direction:column;gap:16px}
+    .analysis-card{display:flex;flex-direction:column;gap:20px}
     .analysis-card h3{margin:0;font-size:20px;font-weight:700;color:var(--heading)}
     .analysis-card h4{margin:0;font-size:16px;font-weight:700;color:var(--heading)}
     .analysis-card p{margin:0;color:var(--muted)}
@@ -210,9 +231,9 @@ Perf notes:
     .analysis-value{font-size:22px;font-weight:700;color:var(--heading)}
     .analysis-detail{margin-top:6px;font-size:13px;line-height:1.5;color:var(--muted)}
     .connectivity-card{margin-top:18px;display:flex;flex-direction:column;gap:14px;}
-    .relationship-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;}
+    .relationship-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;}
     .relationship-item{border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;}
-    .relationship-health-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;}
+    .relationship-health-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;}
     .relationship-health-card{border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;}
     .relationship-health-card h4{margin:0;font-size:15px;color:var(--muted);font-weight:600;}
     .relationship-health-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
@@ -233,9 +254,13 @@ Perf notes:
     .relationship-metrics span{background:var(--pill);border-radius:999px;padding:2px 8px;}
     .relationship-next{font-size:12px;color:var(--muted);}
     .relationship-empty{font-size:13px;color:var(--muted);}
-    .event-connections{margin-top:10px;padding:10px;border-radius:12px;background:var(--panel);border:1px solid var(--border);display:flex;flex-direction:column;gap:6px;}
-    .event-connections span{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
-    .event-connections strong{color:var(--text);}
+    .event-connections{margin-top:10px;padding:12px;border-radius:12px;background:var(--panel);border:1px solid var(--border);display:flex;flex-direction:column;gap:10px;}
+    .event-connection-item{display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--muted);}
+    .event-connection-icon{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;color:var(--accent-2);}
+    .event-connection-icon .icon{width:16px;height:16px;display:block;fill:currentColor;}
+    .event-connection-text{display:flex;flex-direction:column;gap:2px;min-width:0;}
+    .event-connection-label{font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);}
+    .event-connection-value{color:var(--text);line-height:1.35;white-space:normal;word-break:break-word;}
     .multi-select{min-height:96px;padding:6px;border-radius:10px;border:1px solid var(--border);background:var(--card);font-family:inherit;font-size:13px;}
     [data-theme="dark"] .relationship-item{background:var(--card);border-color:var(--border);}
     [data-theme="dark"] .event-connections{background:var(--ghost-bg-dark, var(--panel));}
@@ -249,33 +274,44 @@ Perf notes:
     .events-progress .progress-value{font-weight:700;color:var(--accent-2)}
     .meter-track{position:relative;height:10px;border-radius:999px;background:var(--border);overflow:hidden}
     .meter-fill{position:absolute;inset:0;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-3));border-radius:inherit;transition:width .3s ease}
-    .event-card-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+    .event-card-grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
     /* === Events: BI row view & segmented toggle === */
     .segmented{display:inline-flex;border:1px solid var(--border);border-radius:999px;overflow:hidden;background:var(--panel);margin-left:8px}
     .segmented button{appearance:none;border:0;background:transparent;padding:6px 10px;font:inherit;color:var(--muted);cursor:pointer}
     .segmented button[aria-pressed="true"]{background:var(--accent-1);color:#fff}
     .event-list-head{display:none;margin:8px 0 6px;border:1px solid var(--border);background:var(--panel);color:var(--muted);padding:8px 12px;border-radius:12px;font-size:12px}
-    .event-list-head .head-grid{display:grid;grid-template-columns:1.6fr 1.4fr .8fr 1fr auto;gap:16px}
+    .event-list-head .head-grid{display:grid;grid-template-columns:1.5fr 1.3fr .9fr 1.1fr auto;gap:12px;align-items:center}
     /* Default cards layout remains */
     #events[data-event-view="cards"] .event-card-grid{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));}
-    /* Row view: one card per row, horizontally structured */
-    #events[data-event-view="rows"] .event-card-grid{grid-template-columns:1fr;}
-    #events[data-event-view="rows"] .event-card{display:grid;grid-template-columns:1.6fr 1.4fr .8fr 1fr auto;align-items:center;gap:16px;min-height:auto;padding:12px 16px}
-    #events[data-event-view="rows"] .event-card .event-card-header{margin:0}
-    #events[data-event-view="rows"] .event-card .event-card-title h4{font-size:16px;margin:0}
-    #events[data-event-view="rows"] .event-card .event-address{margin:0}
-    #events[data-event-view="rows"] .event-card .event-actions{margin:0;justify-content:flex-end}
-    #events[data-event-view="rows"] .event-card .event-progress{min-width:180px}
-    #events[data-event-view="rows"] .event-card .event-connections{border:1px solid var(--border);background:var(--card);border-radius:12px;padding:8px 10px}
-    #events[data-event-view="rows"] .event-card.is-editing{display:block;} /* fall back to full-card for editing */
+    /* Row view: compact BI rows */
+    #events[data-event-view="rows"] .event-card-grid{grid-template-columns:1fr;gap:12px;}
+    #events[data-event-view="rows"] .event-card{display:grid;grid-template-columns:1.5fr 1.3fr .9fr 1.1fr auto;align-items:center;gap:12px;min-height:auto;padding:12px 16px;border-radius:12px;box-shadow:none;background:var(--panel);border:1px solid var(--border);}
+    #events[data-event-view="rows"] .event-card .event-card-header{margin:0;align-items:center;gap:12px;}
+    #events[data-event-view="rows"] .event-card .event-card-title{flex-direction:row;align-items:center;gap:12px;min-width:0;}
+    #events[data-event-view="rows"] .event-card .event-card-title h4{font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    #events[data-event-view="rows"] .event-card .event-meta-row{flex-wrap:nowrap;gap:8px;min-width:0;}
+    #events[data-event-view="rows"] .event-card .event-meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:28ch;}
+    #events[data-event-view="rows"] .event-card .event-address{margin:0;background:none;border:0;padding:0;font-size:13px;color:var(--muted);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;min-height:auto;}
+    #events[data-event-view="rows"] .event-card .event-progress{min-width:160px;gap:4px;}
+    #events[data-event-view="rows"] .event-card .event-progress .progress-label span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22ch;}
+    #events[data-event-view="rows"] .event-card .event-progress .meter-track{height:8px;}
+    #events[data-event-view="rows"] .event-card .event-connections{margin:0;padding:0;border:0;background:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;align-items:center;}
+    #events[data-event-view="rows"] .event-card .event-connection-item{padding:0;border:0;border-radius:0;background:none;align-items:flex-start;gap:8px;font-size:12px;color:var(--muted);}
+    #events[data-event-view="rows"] .event-card .event-connection-text{gap:4px;}
+    #events[data-event-view="rows"] .event-card .event-connection-label{font-size:11px;color:var(--muted);}
+    #events[data-event-view="rows"] .event-card .event-connection-value{color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:24ch;}
+    #events[data-event-view="rows"] .event-card .event-connection-icon .icon{width:14px;height:14px;fill:currentColor;}
+    #events[data-event-view="rows"] .event-card .event-actions{margin:0;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap;row-gap:6px;}
+    #events[data-event-view="rows"] .event-card .event-actions button{min-width:0;padding:0 10px;flex:0 0 auto;min-height:32px;font-size:13px;line-height:1.1;}
+    #events[data-event-view="rows"] .event-card .event-actions .icon{width:14px;height:14px;}
+    #events[data-event-view="rows"] .event-card .status{margin-left:auto;font-size:12px;}
+    #events[data-event-view="rows"] .event-card.is-editing{display:block;background:var(--card);box-shadow:var(--shadow);} /* fall back to full-card for editing */
     #events[data-event-view="rows"] .events-empty{display:block}
     #events[data-event-view="rows"] .event-card-header{grid-column:1}
     #events[data-event-view="rows"] .event-address{grid-column:2}
     #events[data-event-view="rows"] .event-progress{grid-column:3}
     #events[data-event-view="rows"] .event-connections{grid-column:4}
     #events[data-event-view="rows"] .event-actions{grid-column:5}
-    #events[data-event-view="rows"] .event-card .status{margin-left:auto}
-    #events[data-event-view="rows"] .event-card .event-card-title .event-meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40ch}
     /* Show header row only for row view */
     #events[data-event-view="rows"] .event-list-head{display:block}
     @media (max-width: 900px){
@@ -285,15 +321,21 @@ Perf notes:
       #events[data-event-view="rows"] .event-progress,
       #events[data-event-view="rows"] .event-connections,
       #events[data-event-view="rows"] .event-actions{grid-column:1}
+      #events[data-event-view="rows"] .event-card .event-card-title{flex-direction:column;align-items:flex-start;gap:6px;}
+      #events[data-event-view="rows"] .event-card .event-meta-row{flex-wrap:wrap;}
+      #events[data-event-view="rows"] .event-card .event-meta{max-width:100%;}
+      #events[data-event-view="rows"] .event-card .event-connections{grid-template-columns:1fr;}
       #events[data-event-view="rows"] .event-list-head{display:none}
     }
 
     .event-card{border:1px solid var(--border);border-radius:16px;padding:18px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px;min-height:220px;position:relative}
     .event-card.is-editing{gap:16px;padding:18px 18px 16px;border-color:var(--accent-2);box-shadow:0 12px 28px -18px var(--accent-2)}
     .event-card-header{display:flex;align-items:flex-start;gap:12px}
-    .event-card-title{display:flex;flex-direction:column;gap:6px;flex:1}
+    .event-card-title{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
     .event-card-title h4{margin:0;font-size:17px;font-weight:700;color:var(--text)}
-    .event-meta{font-size:12px;color:var(--muted)}
+    .event-meta-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:12px;color:var(--muted)}
+    .event-meta{display:inline-flex;align-items:center;gap:6px;font-size:inherit;color:inherit;}
+    .event-meta.owner-meta::before{content:"•";color:var(--muted);margin-right:4px}
     .event-address{font-size:13px;color:var(--text);line-height:1.4;background:var(--kpi-surface);border-radius:12px;padding:10px 12px;border:1px solid var(--kpi-border)}
     .event-progress{display:flex;flex-direction:column;gap:6px}
     .event-progress .progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
@@ -351,7 +393,7 @@ Perf notes:
     .filters-toolbar button{margin-left:auto}
     .filters-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
     @media(max-width:720px){.filters-grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}}
-    .grid{display:grid;gap:12px}
+    .grid{display:grid;gap:20px}
     .grid>*{min-width:0}
     .grid>.card,
     .grid>form{width:100%}
@@ -374,14 +416,16 @@ Perf notes:
     #events form.grid-4,
     #vendors form.grid-4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
     #budget form.grid-5{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
-    .card h3{margin:0 0 6px;font-size:14px;color:var(--muted);font-weight:700}
+    .card h3{margin:0 0 12px;font-size:18px;color:var(--muted);font-weight:700;letter-spacing:.2px}
     .kpi .value{font-size:34px;font-weight:900;margin-top:6px;color:var(--accent-2);text-shadow:0 0 8px var(--glow)}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .spacer{flex:1}.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;align-items:stretch}
-    .two>.card{display:flex;flex-direction:column;gap:12px}
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .spacer{flex:1}.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;align-items:stretch}
+    .two>.card{display:flex;flex-direction:column;gap:20px}
     .two>.card .table-wrap{flex:1}
     @media(max-width:1100px){.two{grid-template-columns:1fr}}
-    input,select,textarea,button{background:#fff;color:var(--text);border:1px solid var(--border);border-radius:12px;padding:9px 12px;font-size:14px;box-shadow:inset 0 0 0 1px #ffffffcc}
+    input,select,textarea{background:#fff;color:var(--text);border:1px solid var(--border);border-radius:12px;padding:8px 12px;font-size:15px;min-height:38px;box-shadow:inset 0 0 0 1px #ffffffcc}
+    button{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:0 16px;min-height:38px;font-size:15px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:inset 0 0 0 1px #ffffffcc;cursor:pointer;transition:box-shadow .15s ease,border-color .15s ease,transform .1s ease}
+    button:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(31,27,46,.08)}
     input::placeholder,textarea::placeholder{color:var(--placeholder);opacity:.75}
     [data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea,[data-theme="dark"] button{background:#111827;border-color:#3b4a6a;box-shadow:inset 0 0 0 1px rgba(148,163,184,.15);color:var(--text)}
     input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent-3);box-shadow:0 0 0 3px var(--focus),inset 0 0 0 1px #ffffff80}
@@ -391,7 +435,7 @@ Perf notes:
     button.ghost{background:var(--ghost-bg)}[data-theme="dark"] button.ghost{background:var(--ghost-bg-dark)}
     button.success{background:linear-gradient(180deg,#10b981,#059669);color:#fff;border-color:#10b981}
     button.danger{background:linear-gradient(180deg,#ef4444,#b91c1c);color:#fff;border-color:#ef4444}
-    button.link{background:transparent;border-color:transparent;text-decoration:underline;cursor:pointer;padding:4px 6px;border-radius:8px}
+    button.link{background:transparent;border-color:transparent;text-decoration:underline;cursor:pointer;padding:4px 6px;border-radius:8px;min-height:auto;font-weight:500}
     .table-wrap{overflow:auto;border-radius:12px;border:1px solid var(--border);-webkit-overflow-scrolling:touch}
     table{width:100%;border-collapse:collapse}
     th,td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:top}
@@ -416,8 +460,8 @@ Perf notes:
     .autocomplete-item:last-child{border-bottom:0}
     .autocomplete-item:hover,.autocomplete-item.active{background:var(--row-hover)}
     [data-theme="dark"] .autocomplete-item:hover,[data-theme="dark"] .autocomplete-item.active{background:var(--row-hover-dark)}
-    .kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .col{background:var(--card);border:1px dashed var(--border);border-radius:12px;padding:10px;min-height:220px}
+    .kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+    .col{background:var(--card);border:1px dashed var(--border);border-radius:12px;padding:16px;min-height:220px}
     .ticket{background:#fff;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px;margin:6px 0;box-shadow:0 1px 0 #00000010}
     [data-theme="dark"] .ticket{background:var(--card);border-color:var(--border)}
     .ticket.overdue{border-color:#ef4444}
@@ -432,14 +476,42 @@ Perf notes:
       .table-wrap{border:0;overflow:visible}
       th{position:static}
     }
-header { gap: 14px; }
-header .search-wrap{position:relative; max-width:360px; flex:1 1 300px}
-#globalSearch{width:100%}
-#globalSearchList{position:absolute; top:100%; left:0; right:0; z-index:50; background:var(--popover); border:1px solid var(--popover-border); border-radius:12px; margin-top:6px; box-shadow:var(--shadow); max-height:260px; overflow:auto}
-.search-item{padding:10px 12px; cursor:pointer; border-bottom:1px solid var(--border); font-size:13px}
-.search-item:last-child{border-bottom:0}
-.search-item:hover{background:var(--row-hover)}
-[data-theme="dark"] .search-item:hover,[data-theme="dark"] .search-item.active{background:var(--row-hover-dark)}
+    .app-header{gap:18px}
+    .header-search{min-width:220px}
+    #globalSearch{width:100%}
+    #globalSearchList{position:absolute;top:100%;left:0;right:0;z-index:70;background:var(--popover);border:1px solid var(--popover-border);border-radius:12px;margin-top:6px;box-shadow:var(--shadow);max-height:260px;overflow:auto}
+    .search-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px}
+    .search-item:last-child{border-bottom:0}
+    .search-item:hover{background:var(--row-hover)}
+    [data-theme="dark"] .search-item:hover,[data-theme="dark"] .search-item.active{background:var(--row-hover-dark)}
+    .user-menu{display:inline-flex;align-items:center;gap:10px;min-height:38px;padding:0 16px;border-radius:999px;border:1px solid var(--border);background:var(--card);color:var(--text);font-weight:600;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
+    .user-menu .avatar{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;letter-spacing:.2px}
+    .user-menu .user-name{white-space:nowrap}
+    .user-menu svg{width:16px;height:16px;opacity:.6}
+    .app-sidebar .sidebar-footer{margin-top:auto;display:flex;flex-direction:column;gap:12px}
+    body.sidebar-collapsed .app-sidebar{width:84px;padding:24px 12px}
+    body.sidebar-collapsed .app-sidebar .scope,body.sidebar-collapsed .app-sidebar .sidebar-header{display:none}
+    body.sidebar-collapsed .app-sidebar nav .tab-btn{justify-content:center;padding:0 12px;gap:0}
+    body.sidebar-collapsed .app-sidebar nav .tab-btn .tab-label{display:none}
+    body.sidebar-collapsed #sidebarToggle .label{display:none}
+    @media(max-width:1023px){
+      .app-header{flex-wrap:wrap;align-items:flex-start;row-gap:12px}
+      .header-brand{width:100%;justify-content:space-between}
+      .header-search{order:3;width:100%}
+      .header-actions{order:2;margin-left:0;justify-content:flex-end}
+      .app-sidebar{flex-direction:column;align-items:flex-start}
+      .app-sidebar nav{gap:8px}
+      body.sidebar-collapsed .app-sidebar{width:100%;padding:16px clamp(16px,4vw,24px)}
+      body.sidebar-collapsed .app-sidebar .scope,body.sidebar-collapsed .app-sidebar .sidebar-header{display:flex}
+      body.sidebar-collapsed .app-sidebar nav .tab-btn .tab-label{display:block}
+    }
+    @media(max-width:720px){
+      .app-header{padding:calc(8px + env(safe-area-inset-top)) 16px 8px}
+      .brand-title{font-size:18px}
+      .header-actions{width:100%;justify-content:flex-start;gap:10px}
+      .user-menu{width:100%;justify-content:flex-start}
+      .app-sidebar{padding:12px 16px}
+    }
 /* Palette fallbacks (will be overwritten by JS when you pick a color) */
 :root{
   --th-bg:#f5f0ff;
@@ -466,45 +538,18 @@ header .search-wrap{position:relative; max-width:360px; flex:1 1 300px}
   --kpi-value:#f6f5ff;
 }
 
-    @media(max-width:980px){
-      header{flex-wrap:wrap;align-items:flex-start;row-gap:12px;justify-content:flex-start}
-      header h1{flex:1 1 100%;margin-bottom:4px}
-      header .search-wrap{order:3;flex:1 1 100%;max-width:none}
-      header .scope{order:2;flex:1 1 100%;justify-content:space-between}
-      header .scope select{width:100%}
-      #accentBtn{order:4;margin-left:auto}
-      #themeToggle{order:5}
-      nav[role="navigation"]{order:6;width:100%;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;margin:4px -16px -8px;padding:0 16px 10px;scroll-snap-type:x proximity;scrollbar-width:none}
-      nav[role="navigation"]::-webkit-scrollbar{display:none}
-      nav[role="navigation"] .tab-btn{flex:0 0 auto;scroll-snap-align:start}
-    }
-
     @media(max-width:820px){
       .grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}
       .grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
       .grid-5{grid-template-columns:repeat(3,minmax(0,1fr))}
     }
 
-    @media(max-width:720px){
-      header{padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
-      header h1{font-size:16px}
-      main{padding:14px}
-      .tab-btn{padding:7px 10px;font-size:12px}
-      .theme-toggle{padding:6px 10px}
-      header .scope{order:4;flex-direction:column;align-items:flex-start}
-      #accentBtn{order:2}
-      #themeToggle{order:3;margin-left:0}
-      nav[role="navigation"]{order:5;margin:8px -14px -8px;padding:0 14px 10px;scroll-snap-type:x proximity;scrollbar-width:none}
-      .grid-2,.grid-3,.grid-4,.grid-5{grid-template-columns:1fr}
-    }
-
     @media(max-width:600px){
       .map{height:320px}
-      header .scope{gap:6px}
     }
 
-    html.is-mobile main{padding:12px}
-    html.is-mobile header{padding:calc(10px + env(safe-area-inset-top)) 14px 10px}
+    html.is-mobile main#main{padding:16px calc(16px + env(safe-area-inset-left)) calc(24px + env(safe-area-inset-bottom));gap:16px}
+    html.is-mobile .app-header{padding:calc(8px + env(safe-area-inset-top)) 16px 8px}
     html.is-mobile .tab.card{padding:12px}
     html.is-mobile #dashboard .grid.kpi{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
     html.is-mobile #dashboard .grid.kpi .card{align-items:flex-start;gap:8px;min-height:88px;padding:16px}
@@ -521,85 +566,10 @@ header .search-wrap{position:relative; max-width:360px; flex:1 1 300px}
     html.is-mobile table{table-layout:auto}
     html.is-mobile th,html.is-mobile td{padding:9px 12px;font-size:13px;white-space:nowrap;word-break:normal}
     html.is-mobile th{position:static}
-
-header .scope{display:inline-flex; align-items:center; gap:8px}
 #leafletMap{ position: relative; } /* ensures empty overlay anchors correctly */
 
   </style>
 
-<style>
-/* === Left Sidebar Layout (drop‑in) ====================================== */
-@media (min-width: 1024px) {
-  html, body { height: 100%; }
-  body {
-    display: grid;
-    grid-template-columns: 260px minmax(0, 1fr);
-    grid-template-areas: "sidebar content";
-    gap: 0;
-    min-height: 100vh;
-  }
-  header[role="banner"] {
-    grid-area: sidebar;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow: auto;
-    padding: 16px;
-    border-right: 1px solid var(--border);
-    border-bottom: 0; /* was topbar */
-    background: var(--panel);
-    box-shadow: none;
-  }
-  /* Title */
-  #appTitle { font-size: 18px; line-height: 1.2; margin: 0 0 12px 0; }
-
-  /* Search + scope become full-width blocks */
-  .search-wrap, .scope { width: 100%; }
-  .search-wrap { margin: 8px 0; }
-
-  /* Vertical nav */
-  nav[role="navigation"] {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin: 8px 0 12px 0;
-  }
-  nav .tab-btn {
-    width: 100%;
-    justify-content: flex-start;
-    text-align: left;
-  }
-
-  /* Accent + theme controls pinned to bottom */
-  .sidebar-spacer { flex: 1 1 auto; }
-  #themeToggle { margin-top: 8px; }
-
-  /* Main content */
-  main#main {
-    grid-area: content;
-    padding: 20px clamp(16px, 2.2vw, 28px);
-    max-width: none;
-  }
-}
-
-/* Collapsed sidebar (optional) */
-@media (min-width: 1024px) {
-  body.sidebar-collapsed { grid-template-columns: 72px minmax(0,1fr); }
-  body.sidebar-collapsed header[role="banner"] { padding: 12px 8px; }
-  body.sidebar-collapsed #appTitle, 
-  body.sidebar-collapsed .search-wrap,
-  body.sidebar-collapsed .scope,
-  body.sidebar-collapsed .color-chip .label,
-  body.sidebar-collapsed #themeLabel { display: none !important; }
-  body.sidebar-collapsed nav .tab-btn { justify-content: center; }
-}
-
-/* Subtle polish */
-nav .tab-btn[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--accent-3); }
-</style>
 </head>
 <body>
 <a class="skip" href="#main" data-testid="skip-link">Skip to content</a>
@@ -614,6 +584,14 @@ nav .tab-btn[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--accent-3);
   <symbol id="ic-download" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4V7h3l-5-5z"/></symbol>
   <symbol id="ic-upload" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM7 10h3v6h4v-6h3l-5-5-5 5z"/></symbol>
   <symbol id="ic-refresh" viewBox="0 0 24 24"><path d="M17.65 6.35A7.95 7.95 0 0012 4V1L7 6l5 5V7a5 5 0 11-4.9 6H5a7 7 0 107.65-6.65z"/></symbol>
+  <symbol id="ic-menu" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></symbol>
+  <symbol id="ic-dashboard" viewBox="0 0 24 24"><path d="M3 3h9v7H3V3zm11 0h7v5h-7V3zm0 7h7v11h-7V10zm-11 3h9v8H3v-8z"/></symbol>
+  <symbol id="ic-analytics" viewBox="0 0 24 24"><path d="M5 19h3V10H5v9zm5 0h3V5h-3v14zm5 0h3v-6h-3v6z"/></symbol>
+  <symbol id="ic-feedback" viewBox="0 0 24 24"><path d="M4 4h16v12H7l-3 3V4zm4 5v2h8V9H8z"/></symbol>
+  <symbol id="ic-timeline" viewBox="0 0 24 24"><path d="M4 11h6V6h4v5h6v2h-6v5h-4v-5H4z"/></symbol>
+  <symbol id="ic-budget" viewBox="0 0 24 24"><path d="M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z"/></symbol>
+  <symbol id="ic-settings" viewBox="0 0 24 24"><path d="M19.14 12.94a7 7 0 000-1.88l2.01-1.57-1.92-3.32-2.38.5a7.1 7.1 0 00-1.63-.95L14.9 3h-3.8l-.32 2.72a7.1 7.1 0 00-1.63.95l-2.38-.5-1.92 3.32 2.01 1.57a7 7 0 000 1.88l-2.01 1.57 1.92 3.32 2.38-.5c.5.4 1.05.73 1.63.95L11.1 21h3.8l.32-2.72c.58-.22 1.13-.55 1.63-.95l2.38.5 1.92-3.32-2.01-1.57zM13 12a1 1 0 11-2 0 1 1 0 012 0z"/></symbol>
+  <symbol id="ic-chevron-down" viewBox="0 0 24 24"><path d="M7 9l5 5 5-5H7z"/></symbol>
   <symbol id="ic-x" viewBox="0 0 24 24"><path d="M6.225 4.811L12 10.586l5.775-5.775 1.414 1.414L13.414 12l5.775 5.775-1.414 1.414L12 13.414l-5.775 5.775-1.414-1.414L10.586 12 4.811 6.225z"/></symbol>
   <symbol id="ic-funnel" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4L3 5z"/></symbol>
   <symbol id="ic-pin" viewBox="0 0 24 24"><path d="M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></symbol>
@@ -625,44 +603,89 @@ nav .tab-btn[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--accent-3);
   <symbol id="ic-link" viewBox="0 0 24 24"><path d="M3.9 12a5.1 5.1 0 015.1-5.1H12v2.1H9a3 3 0 100 6h3v2.1H9a5.1 5.1 0 01-5.1-5.1zm7.1-3h3a5.1 5.1 0 110 10.2H13v-2.1h1a3 3 0 100-6h-3V9z"/></symbol>
 </svg>
 
-<header role="banner" aria-label="Application header">
-<h1 id="appTitle">Event Planner Pro</h1>
-<div class="search-wrap no-print" aria-label="Global event search">
-  <input id="globalSearch" placeholder="Search events…" aria-label="Search events (global)" autocomplete="off" />
-  <div id="globalSearchList" role="listbox" style="display:none"></div>
-</div>
-  <nav role="navigation" aria-label="Primary">
-    <button class="tab-btn" data-testid="nav-dashboard" data-route="#/dashboard" aria-current="page">Dashboard</button>
-    <button class="tab-btn" data-testid="nav-analysis" data-route="#/analysis">Analysis</button>
-    <button class="tab-btn" data-testid="nav-events" data-route="#/events">Events</button>
-    <button class="tab-btn" data-testid="nav-post" data-route="#/post">Post-Event</button>
-    <button class="tab-btn" data-testid="nav-timeline" data-route="#/timeline">Timeline</button>
-    <button class="tab-btn" data-testid="nav-vendors" data-route="#/vendors">Vendors</button>
-    <button class="tab-btn" data-testid="nav-budget" data-route="#/budget">Budget</button>
-    <button class="tab-btn" data-testid="nav-tasks" data-route="#/tasks">Tasks</button>
-    <button class="tab-btn" data-testid="nav-map" data-route="#/map" aria-controls="map">Map</button>
-    <button class="tab-btn" data-testid="nav-settings" data-route="#/settings">Settings</button>
-  </nav>
-<div class="scope no-print">
-  <div class="small muted" aria-hidden="true">Scope</div>
-  <select id="scopeEvent" title="Data scope (All vs specific event)">
-    <option value="">All events</option>
-  </select>
-</div>
-<!-- Accent color picker (small chip + hidden input) -->
-<button id="accentBtn" class="color-chip no-print" type="button"
-          title="Pick accent color" aria-label="Pick accent color">
-    <span class="chip-swatch" aria-hidden="true"></span>
-    <input id="accentPicker" type="color" value="#7c3aed"
-           class="color-hit-target" aria-label="Pick accent color">
-  </button>
-  <button id="themeToggle" class="theme-toggle" title="Toggle theme" aria-pressed="false" data-testid="theme-toggle">
-    <svg class="icon" id="themeIcon" aria-hidden="true"><use href="#ic-sun"></use></svg>
-    <span id="themeLabel" class="label">Light</span>
-  </button>
-</header>
-
-<main id="main" tabindex="-1">
+<div class="app-shell">
+  <header class="app-header" role="banner" aria-label="Application header">
+    <div class="header-brand">
+      <button id="sidebarToggle" class="icon-button no-print" type="button" aria-pressed="false" aria-label="Toggle navigation">
+        <svg class="icon" aria-hidden="true"><use href="#ic-menu"></use></svg>
+        <span class="label">Menu</span>
+      </button>
+      <h1 id="appTitle" class="brand-title">Event Planner Pro</h1>
+    </div>
+    <div class="header-search no-print" aria-label="Global event search">
+      <div class="search-wrap">
+        <input id="globalSearch" placeholder="Search events…" aria-label="Search events (global)" autocomplete="off" />
+        <div id="globalSearchList" role="listbox" style="display:none"></div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="accentBtn" class="color-chip no-print" type="button" title="Pick accent color" aria-label="Pick accent color">
+        <span class="chip-swatch" aria-hidden="true"></span>
+        <input id="accentPicker" type="color" value="#7c3aed" class="color-hit-target" aria-label="Pick accent color">
+      </button>
+      <button id="themeToggle" class="theme-toggle no-print" title="Toggle theme" aria-pressed="false" data-testid="theme-toggle">
+        <svg class="icon" id="themeIcon" aria-hidden="true"><use href="#ic-sun"></use></svg>
+        <span id="themeLabel" class="label">Light</span>
+      </button>
+      <button class="user-menu no-print" type="button" aria-haspopup="menu" aria-expanded="false">
+        <span class="avatar" aria-hidden="true">AM</span>
+        <span class="user-name">Alex Morgan</span>
+        <svg class="icon" aria-hidden="true"><use href="#ic-chevron-down"></use></svg>
+      </button>
+    </div>
+  </header>
+  <div class="app-shell-body">
+    <aside class="app-sidebar no-print" aria-label="Primary navigation">
+      <div class="sidebar-header scope no-print">
+        <label for="scopeEvent" class="muted small">Scope</label>
+        <select id="scopeEvent" title="Data scope (All vs specific event)">
+          <option value="">All events</option>
+        </select>
+      </div>
+      <nav role="navigation" aria-label="Primary">
+        <button class="tab-btn" data-testid="nav-dashboard" data-route="#/dashboard" aria-current="page">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-dashboard"></use></svg></span>
+          <span class="tab-label">Dashboard</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-analysis" data-route="#/analysis">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-analytics"></use></svg></span>
+          <span class="tab-label">Analysis</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-events" data-route="#/events">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-calendar"></use></svg></span>
+          <span class="tab-label">Events</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-post" data-route="#/post">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-feedback"></use></svg></span>
+          <span class="tab-label">Post-Event</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-timeline" data-route="#/timeline">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-timeline"></use></svg></span>
+          <span class="tab-label">Timeline</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-vendors" data-route="#/vendors">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-users"></use></svg></span>
+          <span class="tab-label">Vendors</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-budget" data-route="#/budget">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-budget"></use></svg></span>
+          <span class="tab-label">Budget</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-tasks" data-route="#/tasks">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-check"></use></svg></span>
+          <span class="tab-label">Tasks</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-map" data-route="#/map" aria-controls="map">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-map"></use></svg></span>
+          <span class="tab-label">Map</span>
+        </button>
+        <button class="tab-btn" data-testid="nav-settings" data-route="#/settings">
+          <span class="tab-icon" aria-hidden="true"><svg class="icon"><use href="#ic-settings"></use></svg></span>
+          <span class="tab-label">Settings</span>
+        </button>
+      </nav>
+    </aside>
+    <main id="main" tabindex="-1">
   <!-- DASHBOARD -->
   <section id="dashboard" class="tab card" role="region" aria-labelledby="h-dashboard">
     <h2 id="h-dashboard" class="visually-hidden" style="position:absolute;left:-9999px">Dashboard</h2>
@@ -1041,7 +1064,10 @@ nav .tab-btn[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--accent-3);
     <div class="hr"></div>
     <div class="small muted">Keyboard: <kbd>g</kbd> then <kbd>d</kbd>/<kbd>e</kbd>/<kbd>t</kbd>/<kbd>v</kbd>/<kbd>b</kbd>/<kbd>m</kbd>/<kbd>s</kbd> to go to Dashboard/Events/Tasks/Vendors/Budget/Map/Settings.</div>
   </section>
-</main>
+
+    </main>
+  </div>
+</div>
 
 <script>
 /* ---------- Utils ---------- */
@@ -2670,23 +2696,35 @@ function renderEventsTable(){
     const metaLine=metaParts.length?metaParts.join(" · "):"Details TBD";
 
     const vendorNames=vendors.map(v=>v.name).filter(Boolean);
-    const vendorSummary=vendorNames.length
-      ? vendorNames.slice(0,2).map(name=>escapeAttr(name)).join(", ")+(vendorNames.length>2?"…":"")
+    const vendorSummaryText=vendorNames.length
+      ? vendorNames.slice(0,2).join(", ")+(vendorNames.length>2?"…":"")
       : "No vendors linked";
-    const budgetSummary=budgetMetrics.forecast
+    const budgetSummaryText=budgetMetrics.forecast
       ? `${fmtMoney(budgetMetrics.actual||0)} / ${fmtMoney(budgetMetrics.forecast||0)}`
       : "No budget lines";
-    const timelineSummary=nextSlot
-      ? `${(nextSlot.start?fmtDateTime(nextSlot.start):"Date TBD")} • ${escapeAttr(nextSlot.title||"Unnamed")}`
+    const timelineTitle=nextSlot?.title?nextSlot.title:"Unnamed";
+    const timelineSummaryText=nextSlot
+      ? `${(nextSlot.start?fmtDateTime(nextSlot.start):"Date TBD")} • ${timelineTitle}`
       : "No upcoming slots";
-    const poiSummary=pois.length?`${pois.length} POI${pois.length===1?"":"s"}`:"No POIs";
+    const poiSummaryText=pois.length?`${pois.length} POI${pois.length===1?"":"s"}`:"No POIs";
+
+    const connectionItems=[
+      { icon:"#ic-users", label:"Vendors", value:vendorSummaryText },
+      { icon:"#ic-briefcase", label:"Budget", value:budgetSummaryText },
+      { icon:"#ic-calendar", label:"Timeline", value:timelineSummaryText },
+      { icon:"#ic-pin", label:"POIs", value:poiSummaryText }
+    ];
 
     const connectionsHtml=`
       <div class="event-connections">
-        <span><svg class="icon"><use href="#ic-users"></use></svg>${vendorSummary}</span>
-        <span><svg class="icon"><use href="#ic-briefcase"></use></svg>${budgetSummary}</span>
-        <span><svg class="icon"><use href="#ic-calendar"></use></svg>${timelineSummary}</span>
-        <span><svg class="icon"><use href="#ic-pin"></use></svg>${poiSummary}</span>
+        ${connectionItems.map(item=>`
+          <span class="event-connection-item">
+            <span class="event-connection-icon" aria-hidden="true"><svg class="icon"><use href="${item.icon}"></use></svg></span>
+            <span class="event-connection-text">
+              <span class="event-connection-label">${item.label}</span>
+              <span class="event-connection-value">${escapeAttr(item.value)}</span>
+            </span>
+          </span>`).join("")}
       </div>`;
 
     displayData.push({
@@ -2715,7 +2753,7 @@ function renderEventsTable(){
     const addressHtml=escapeAttr(e.address||"");
     const summaryText=escapeAttr(taskSummary);
     const metaHtml=escapeAttr(metaLine);
-    const ownerHtml=e.owner?`<div class="event-meta">Owner: ${escapeAttr(e.owner)}</div>`:"";
+    const ownerHtml=e.owner?`<span class="event-meta owner-meta">Owner: ${escapeAttr(e.owner)}</span>`:"";
     const titleHtml=escapeAttr(e.title||"Untitled Event");
     const statusText=escapeAttr(e.status||"");
 
@@ -2742,7 +2780,7 @@ function renderEventsTable(){
         <div class="event-card-header">
           <div class="event-card-title">
             <h4>Edit Event</h4>
-            <div class="event-meta">${titleHtml}</div>
+            <div class="event-meta-row"><span class="event-meta">${titleHtml}</span></div>
           </div>
           <span class="status ${statusClass}">${statusText}</span>
         </div>
@@ -2770,8 +2808,7 @@ function renderEventsTable(){
         <div class="event-card-header">
           <div class="event-card-title">
             <h4>${titleHtml}</h4>
-            <div class="event-meta">${metaHtml}</div>
-            ${ownerHtml}
+            <div class="event-meta-row"><span class="event-meta">${metaHtml}</span>${ownerHtml}</div>
           </div>
           <span class="status ${statusClass}">${statusText}</span>
         </div>
@@ -3833,32 +3870,33 @@ qs("#globalSearch")?.addEventListener("keydown",(e)=>{
 <script>
 (function addSidebarToggle(){
   const KEY = "epp_sidebar_collapsed";
-  const header = document.querySelector('header[role="banner"]');
-  if (!header) return;
+  const toggle = document.getElementById("sidebarToggle");
+  if (!toggle) return;
 
-  // Restore state
   if (localStorage.getItem(KEY) === "1") {
     document.body.classList.add("sidebar-collapsed");
   }
 
-  // Button
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "ghost";
-  btn.style.marginTop = "6px";
-  btn.setAttribute("aria-pressed", document.body.classList.contains("sidebar-collapsed") ? "true" : "false");
-  btn.innerHTML = '<svg class="icon" aria-hidden="true"><use href="#ic-menu"></use></svg> <span class="label">Collapse</span>';
-  btn.addEventListener("click", () => {
+  const sync = () => {
+    const collapsed = document.body.classList.contains("sidebar-collapsed");
+    toggle.setAttribute("aria-pressed", collapsed ? "true" : "false");
+  };
+
+  sync();
+
+  toggle.addEventListener("click", () => {
     const collapsed = document.body.classList.toggle("sidebar-collapsed");
-    btn.setAttribute("aria-pressed", collapsed ? "true" : "false");
     localStorage.setItem(KEY, collapsed ? "1" : "0");
+    sync();
   });
 
-  // Add spacer to push controls to bottom and insert button after it
-  const spacer = document.createElement("div");
-  spacer.className = "sidebar-spacer";
-  header.appendChild(spacer);
-  header.appendChild(btn);
+  window.addEventListener("resize", () => {
+    if (window.innerWidth < 1024 && document.body.classList.contains("sidebar-collapsed")) {
+      document.body.classList.remove("sidebar-collapsed");
+      localStorage.setItem(KEY, "0");
+      sync();
+    }
+  });
 })();
 
 // ---- Batched localStorage writes ----
