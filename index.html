@@ -254,9 +254,13 @@ Perf notes:
     .relationship-metrics span{background:var(--pill);border-radius:999px;padding:2px 8px;}
     .relationship-next{font-size:12px;color:var(--muted);}
     .relationship-empty{font-size:13px;color:var(--muted);}
-    .event-connections{margin-top:10px;padding:10px;border-radius:12px;background:var(--panel);border:1px solid var(--border);display:flex;flex-direction:column;gap:6px;}
-    .event-connections span{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
-    .event-connections strong{color:var(--text);}
+    .event-connections{margin-top:10px;padding:12px;border-radius:12px;background:var(--panel);border:1px solid var(--border);display:flex;flex-direction:column;gap:10px;}
+    .event-connection-item{display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--muted);}
+    .event-connection-icon{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;color:var(--accent-2);}
+    .event-connection-icon .icon{width:16px;height:16px;display:block;fill:currentColor;}
+    .event-connection-text{display:flex;flex-direction:column;gap:2px;min-width:0;}
+    .event-connection-label{font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);}
+    .event-connection-value{color:var(--text);line-height:1.35;white-space:normal;word-break:break-word;}
     .multi-select{min-height:96px;padding:6px;border-radius:10px;border:1px solid var(--border);background:var(--card);font-family:inherit;font-size:13px;}
     [data-theme="dark"] .relationship-item{background:var(--card);border-color:var(--border);}
     [data-theme="dark"] .event-connections{background:var(--ghost-bg-dark, var(--panel));}
@@ -276,27 +280,38 @@ Perf notes:
     .segmented button{appearance:none;border:0;background:transparent;padding:6px 10px;font:inherit;color:var(--muted);cursor:pointer}
     .segmented button[aria-pressed="true"]{background:var(--accent-1);color:#fff}
     .event-list-head{display:none;margin:8px 0 6px;border:1px solid var(--border);background:var(--panel);color:var(--muted);padding:8px 12px;border-radius:12px;font-size:12px}
-    .event-list-head .head-grid{display:grid;grid-template-columns:1.6fr 1.4fr .8fr 1fr auto;gap:16px}
+    .event-list-head .head-grid{display:grid;grid-template-columns:1.5fr 1.3fr .9fr 1.1fr auto;gap:12px;align-items:center}
     /* Default cards layout remains */
     #events[data-event-view="cards"] .event-card-grid{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));}
-    /* Row view: one card per row, horizontally structured */
-    #events[data-event-view="rows"] .event-card-grid{grid-template-columns:1fr;}
-    #events[data-event-view="rows"] .event-card{display:grid;grid-template-columns:1.6fr 1.4fr .8fr 1fr auto;align-items:center;gap:16px;min-height:auto;padding:12px 16px}
-    #events[data-event-view="rows"] .event-card .event-card-header{margin:0}
-    #events[data-event-view="rows"] .event-card .event-card-title h4{font-size:16px;margin:0}
-    #events[data-event-view="rows"] .event-card .event-address{margin:0}
-    #events[data-event-view="rows"] .event-card .event-actions{margin:0;justify-content:flex-end}
-    #events[data-event-view="rows"] .event-card .event-progress{min-width:180px}
-    #events[data-event-view="rows"] .event-card .event-connections{border:1px solid var(--border);background:var(--card);border-radius:12px;padding:8px 10px}
-    #events[data-event-view="rows"] .event-card.is-editing{display:block;} /* fall back to full-card for editing */
+    /* Row view: compact BI rows */
+    #events[data-event-view="rows"] .event-card-grid{grid-template-columns:1fr;gap:12px;}
+    #events[data-event-view="rows"] .event-card{display:grid;grid-template-columns:1.5fr 1.3fr .9fr 1.1fr auto;align-items:center;gap:12px;min-height:auto;padding:12px 16px;border-radius:12px;box-shadow:none;background:var(--panel);border:1px solid var(--border);}
+    #events[data-event-view="rows"] .event-card .event-card-header{margin:0;align-items:center;gap:12px;}
+    #events[data-event-view="rows"] .event-card .event-card-title{flex-direction:row;align-items:center;gap:12px;min-width:0;}
+    #events[data-event-view="rows"] .event-card .event-card-title h4{font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    #events[data-event-view="rows"] .event-card .event-meta-row{flex-wrap:nowrap;gap:8px;min-width:0;}
+    #events[data-event-view="rows"] .event-card .event-meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:28ch;}
+    #events[data-event-view="rows"] .event-card .event-address{margin:0;background:none;border:0;padding:0;font-size:13px;color:var(--muted);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;min-height:auto;}
+    #events[data-event-view="rows"] .event-card .event-progress{min-width:160px;gap:4px;}
+    #events[data-event-view="rows"] .event-card .event-progress .progress-label span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:22ch;}
+    #events[data-event-view="rows"] .event-card .event-progress .meter-track{height:8px;}
+    #events[data-event-view="rows"] .event-card .event-connections{margin:0;padding:0;border:0;background:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;align-items:center;}
+    #events[data-event-view="rows"] .event-card .event-connection-item{padding:0;border:0;border-radius:0;background:none;align-items:flex-start;gap:8px;font-size:12px;color:var(--muted);}
+    #events[data-event-view="rows"] .event-card .event-connection-text{gap:4px;}
+    #events[data-event-view="rows"] .event-card .event-connection-label{font-size:11px;color:var(--muted);}
+    #events[data-event-view="rows"] .event-card .event-connection-value{color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:24ch;}
+    #events[data-event-view="rows"] .event-card .event-connection-icon .icon{width:14px;height:14px;fill:currentColor;}
+    #events[data-event-view="rows"] .event-card .event-actions{margin:0;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap;row-gap:6px;}
+    #events[data-event-view="rows"] .event-card .event-actions button{min-width:0;padding:0 10px;flex:0 0 auto;min-height:32px;font-size:13px;line-height:1.1;}
+    #events[data-event-view="rows"] .event-card .event-actions .icon{width:14px;height:14px;}
+    #events[data-event-view="rows"] .event-card .status{margin-left:auto;font-size:12px;}
+    #events[data-event-view="rows"] .event-card.is-editing{display:block;background:var(--card);box-shadow:var(--shadow);} /* fall back to full-card for editing */
     #events[data-event-view="rows"] .events-empty{display:block}
     #events[data-event-view="rows"] .event-card-header{grid-column:1}
     #events[data-event-view="rows"] .event-address{grid-column:2}
     #events[data-event-view="rows"] .event-progress{grid-column:3}
     #events[data-event-view="rows"] .event-connections{grid-column:4}
     #events[data-event-view="rows"] .event-actions{grid-column:5}
-    #events[data-event-view="rows"] .event-card .status{margin-left:auto}
-    #events[data-event-view="rows"] .event-card .event-card-title .event-meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40ch}
     /* Show header row only for row view */
     #events[data-event-view="rows"] .event-list-head{display:block}
     @media (max-width: 900px){
@@ -306,15 +321,21 @@ Perf notes:
       #events[data-event-view="rows"] .event-progress,
       #events[data-event-view="rows"] .event-connections,
       #events[data-event-view="rows"] .event-actions{grid-column:1}
+      #events[data-event-view="rows"] .event-card .event-card-title{flex-direction:column;align-items:flex-start;gap:6px;}
+      #events[data-event-view="rows"] .event-card .event-meta-row{flex-wrap:wrap;}
+      #events[data-event-view="rows"] .event-card .event-meta{max-width:100%;}
+      #events[data-event-view="rows"] .event-card .event-connections{grid-template-columns:1fr;}
       #events[data-event-view="rows"] .event-list-head{display:none}
     }
 
     .event-card{border:1px solid var(--border);border-radius:16px;padding:18px;background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px;min-height:220px;position:relative}
     .event-card.is-editing{gap:16px;padding:18px 18px 16px;border-color:var(--accent-2);box-shadow:0 12px 28px -18px var(--accent-2)}
     .event-card-header{display:flex;align-items:flex-start;gap:12px}
-    .event-card-title{display:flex;flex-direction:column;gap:6px;flex:1}
+    .event-card-title{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
     .event-card-title h4{margin:0;font-size:17px;font-weight:700;color:var(--text)}
-    .event-meta{font-size:12px;color:var(--muted)}
+    .event-meta-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:12px;color:var(--muted)}
+    .event-meta{display:inline-flex;align-items:center;gap:6px;font-size:inherit;color:inherit;}
+    .event-meta.owner-meta::before{content:"•";color:var(--muted);margin-right:4px}
     .event-address{font-size:13px;color:var(--text);line-height:1.4;background:var(--kpi-surface);border-radius:12px;padding:10px 12px;border:1px solid var(--kpi-border)}
     .event-progress{display:flex;flex-direction:column;gap:6px}
     .event-progress .progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
@@ -2675,23 +2696,35 @@ function renderEventsTable(){
     const metaLine=metaParts.length?metaParts.join(" · "):"Details TBD";
 
     const vendorNames=vendors.map(v=>v.name).filter(Boolean);
-    const vendorSummary=vendorNames.length
-      ? vendorNames.slice(0,2).map(name=>escapeAttr(name)).join(", ")+(vendorNames.length>2?"…":"")
+    const vendorSummaryText=vendorNames.length
+      ? vendorNames.slice(0,2).join(", ")+(vendorNames.length>2?"…":"")
       : "No vendors linked";
-    const budgetSummary=budgetMetrics.forecast
+    const budgetSummaryText=budgetMetrics.forecast
       ? `${fmtMoney(budgetMetrics.actual||0)} / ${fmtMoney(budgetMetrics.forecast||0)}`
       : "No budget lines";
-    const timelineSummary=nextSlot
-      ? `${(nextSlot.start?fmtDateTime(nextSlot.start):"Date TBD")} • ${escapeAttr(nextSlot.title||"Unnamed")}`
+    const timelineTitle=nextSlot?.title?nextSlot.title:"Unnamed";
+    const timelineSummaryText=nextSlot
+      ? `${(nextSlot.start?fmtDateTime(nextSlot.start):"Date TBD")} • ${timelineTitle}`
       : "No upcoming slots";
-    const poiSummary=pois.length?`${pois.length} POI${pois.length===1?"":"s"}`:"No POIs";
+    const poiSummaryText=pois.length?`${pois.length} POI${pois.length===1?"":"s"}`:"No POIs";
+
+    const connectionItems=[
+      { icon:"#ic-users", label:"Vendors", value:vendorSummaryText },
+      { icon:"#ic-briefcase", label:"Budget", value:budgetSummaryText },
+      { icon:"#ic-calendar", label:"Timeline", value:timelineSummaryText },
+      { icon:"#ic-pin", label:"POIs", value:poiSummaryText }
+    ];
 
     const connectionsHtml=`
       <div class="event-connections">
-        <span><svg class="icon"><use href="#ic-users"></use></svg>${vendorSummary}</span>
-        <span><svg class="icon"><use href="#ic-briefcase"></use></svg>${budgetSummary}</span>
-        <span><svg class="icon"><use href="#ic-calendar"></use></svg>${timelineSummary}</span>
-        <span><svg class="icon"><use href="#ic-pin"></use></svg>${poiSummary}</span>
+        ${connectionItems.map(item=>`
+          <span class="event-connection-item">
+            <span class="event-connection-icon" aria-hidden="true"><svg class="icon"><use href="${item.icon}"></use></svg></span>
+            <span class="event-connection-text">
+              <span class="event-connection-label">${item.label}</span>
+              <span class="event-connection-value">${escapeAttr(item.value)}</span>
+            </span>
+          </span>`).join("")}
       </div>`;
 
     displayData.push({
@@ -2720,7 +2753,7 @@ function renderEventsTable(){
     const addressHtml=escapeAttr(e.address||"");
     const summaryText=escapeAttr(taskSummary);
     const metaHtml=escapeAttr(metaLine);
-    const ownerHtml=e.owner?`<div class="event-meta">Owner: ${escapeAttr(e.owner)}</div>`:"";
+    const ownerHtml=e.owner?`<span class="event-meta owner-meta">Owner: ${escapeAttr(e.owner)}</span>`:"";
     const titleHtml=escapeAttr(e.title||"Untitled Event");
     const statusText=escapeAttr(e.status||"");
 
@@ -2747,7 +2780,7 @@ function renderEventsTable(){
         <div class="event-card-header">
           <div class="event-card-title">
             <h4>Edit Event</h4>
-            <div class="event-meta">${titleHtml}</div>
+            <div class="event-meta-row"><span class="event-meta">${titleHtml}</span></div>
           </div>
           <span class="status ${statusClass}">${statusText}</span>
         </div>
@@ -2775,8 +2808,7 @@ function renderEventsTable(){
         <div class="event-card-header">
           <div class="event-card-title">
             <h4>${titleHtml}</h4>
-            <div class="event-meta">${metaHtml}</div>
-            ${ownerHtml}
+            <div class="event-meta-row"><span class="event-meta">${metaHtml}</span>${ownerHtml}</div>
           </div>
           <span class="status ${statusClass}">${statusText}</span>
         </div>
